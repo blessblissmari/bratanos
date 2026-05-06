@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="BratanOS — Arch Linux + i3wm со встроенной авточисткой системы. Без сложности NixOS, без накопления мусора. С графическим флешером в комплекте." />
+  <title>BratanOS — Arch + i3, без мусора.</title>
+  <link rel="icon" href="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'&gt;&lt;rect width='64' height='64' rx='12' fill='%2389b4fa'/&gt;&lt;text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='ui-monospace,monospace' font-size='32' font-weight='800' fill='%231e1e2e'&gt;B&lt;/text&gt;&lt;/svg&gt;" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+<header>
+  <nav>
+    <a class="brand" href="#">
+      <span class="logo">▣</span> BratanOS
+    </a>
+    <ul class="nav-links">
+      <li><a href="#download">скачать</a></li>
+      <li><a href="#why">плюсы</a></li>
+      <li><a href="#tidy">tidy</a></li>
+      <li><a href="#aur">aur</a></li>
+      <li><a href="#roadmap">в разработке</a></li>
+      <li><a href="https://github.com/blessblissmari/bratanos">github ↗</a></li>
+    </ul>
+    <div class="lang">
+      <a href="../">EN</a>
+      <span class="lang__sep">·</span>
+      <span class="lang__active">RU</span>
+    </div>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1><span class="grad">Arch</span> + <span class="grad">i3</span>, без мусора.</h1>
+  <p class="lede">
+    BratanOS — это Arch Linux с простотой <code>pacman</code>,
+    элегантностью i3wm и дисциплиной NixOS — но без сложности последнего.
+    Встроенный tidy не даёт сиротам, устаревшему кэшу и старым ядрам копиться.
+  </p>
+  <div class="cta">
+    <a href="#download" class="btn btn--primary">Скачать ISO</a>
+    <a href="#flash" class="btn">Записать на USB</a>
+  </div>
+  <pre class="terminal" aria-hidden="true"><span class="prompt">bratan@bratanos</span>:<span class="path">~</span>$ bratan-tidy --status
+» BratanOS — статус tidy
+  кэш pacman:          <span class="t-good">412.3 MB</span>
+  journal:             <span class="t-good">88.1 MB</span>
+  пакеты-сироты:       <span class="t-warn">3</span>
+  pacnew/pacsave:      <span class="t-warn">1</span>
+
+Запусти <span class="t-accent">sudo bratan-tidy --apply</span> чтобы почистить.</pre>
+</section>
+
+<section id="download" class="section">
+  <h2>1. Скачать</h2>
+  <p class="muted">Один hybrid ISO на все платформы. Грузится с DVD и USB. Внутри — live-режим и установщик. Инструкции по записи на флешку — ниже.</p>
+  <a class="download-cta" href="https://github.com/blessblissmari/bratanos/releases/download/v0.1.0/bratanos-2026.05.06-x86_64.iso">
+    <div class="download-cta__main">
+      <span class="download-cta__label">Скачать</span>
+      <strong>bratanos-2026.05.06-x86_64.iso</strong>
+      <span class="muted">x86_64 · 1.5 GB · hybrid (BIOS + UEFI, грузится с USB)</span>
+    </div>
+    <div class="download-cta__arrow">↓</div>
+  </a>
+  <p class="muted download-meta">
+    <strong>SHA-256:</strong>
+    <code>5b07ccb730cdc507b40ab8968e57ae090aa12ed713f8242a71a6a0bfafa590bb</code>
+    · <a href="https://github.com/blessblissmari/bratanos/releases/download/v0.1.0/bratanos-2026.05.06-x86_64.iso.sha256">.sha256</a>
+    · <a href="https://github.com/blessblissmari/bratanos/releases/tag/v0.1.0">release notes</a>
+  </p>
+</section>
+
+<section id="flash" class="section">
+  <h2>2. Записать на USB</h2>
+  <p class="muted">Выбери ОС, с которой ты сейчас работаешь:</p>
+  <div class="tabs">
+    <button class="tab" data-tab="linux">Linux</button>
+    <button class="tab" data-tab="mac">macOS</button>
+    <button class="tab" data-tab="windows">Windows</button>
+    <button class="tab" data-tab="persistent">Флешка с памятью</button>
+    <button class="tab" data-tab="flasher">BratanOS Flasher</button>
+  </div>
+  <div class="tab-panel" data-panel="linux">
+    <p>Найди USB-устройство через <code>lsblk</code>. Подставь <code>sdX</code> ниже — <strong>не партицию, а весь диск</strong>.</p>
+    <pre><code>sudo dd if=bratanos.iso of=/dev/sdX bs=4M status=progress conv=fsync
+sudo sync</code></pre>
+    <p class="muted">Это <em>обычная</em> live-флешка. Каждый ребут возвращает её в исходное состояние. Если хочешь, чтобы изменения сохранялись — открой вкладку <strong>«Флешка с памятью»</strong>.</p>
+  </div>
+  <div class="tab-panel hidden" data-panel="mac">
+    <p>Найди диск через <code>diskutil list</code>, размонтируй и пиши <code>dd</code>:</p>
+    <pre><code>diskutil list
+diskutil unmountDisk /dev/diskN
+sudo dd if=bratanos.iso of=/dev/rdiskN bs=4m
+sync</code></pre>
+    <p class="muted">Или возьми <a href="https://etcher.balena.io/">balenaEtcher</a>, если терминал пугает.</p>
+  </div>
+  <div class="tab-panel hidden" data-panel="windows">
+    <p>Любой из вариантов:</p>
+    <ul>
+      <li><a href="https://rufus.ie/">Rufus</a> — режим «DD image».</li>
+      <li><a href="https://www.ventoy.net/">Ventoy</a> — кинуть ISO на флешку с Ventoy.</li>
+      <li><a href="https://etcher.balena.io/">balenaEtcher</a> — выбрать, нажать, готово.</li>
+    </ul>
+  </div>
+  <div class="tab-panel hidden" data-panel="persistent">
+    <p>Сделать так, чтобы BratanOS реально <em>жил</em> на флешке: установленные пакеты, <code>~/.config</code>, файлы в <code>$HOME</code> — всё переживает ребут.</p>
+    <pre><code>sudo bratan-flash-persistent bratanos.iso /dev/sdX</code></pre>
+    <p>Что делает скрипт:</p>
+    <ol>
+      <li><code>dd</code>-ит ISO на флешку.</li>
+      <li>Из оставшегося свободного места делает второй раздел в ext4 с меткой <code>BRATAN_PERSIST</code>.</li>
+      <li>При следующей загрузке выбираешь <strong>«BratanOS (persistent)»</strong> в меню загрузчика — ядро монтирует этот раздел как writable overlay.</li>
+    </ol>
+    <p class="muted">Скрипт лежит и <em>внутри</em> live-ISO, поэтому, загрузившись с обычной live-флешки, ты можешь сразу записать вторую — уже с памятью.</p>
+  </div>
+  <div class="tab-panel hidden" data-panel="flasher">
+    <p>BratanOS Flasher — наш собственный аналог balenaEtcher: выбери ISO, выбери флешку, смотри прогресс. Написан на Tauri (Rust + web).</p>
+    <pre><code># на BratanOS или Arch:
+git clone https://github.com/blessblissmari/bratanos
+cd bratanos/installer
+sudo bratan-flasher</code></pre>
+    <p class="muted">Linux-бэкенд работает уже сейчас; macOS и Windows — в разработке (заглушки за общим trait-ом).</p>
+  </div>
+</section>
+
+<section id="why" class="section">
+  <h2>Почему BratanOS</h2>
+  <p class="muted">Все плюсы кратко. Ничего из этого не требует учить новый инструмент.</p>
+  <div class="benefits">
+    <div class="benefit">
+      <div class="benefit__icon">⌬</div>
+      <h3>Чистый Arch под капотом</h3>
+      <p>Тот же <code>pacman</code>, та же Wiki, тот же rolling release. Мы не форкаем ядро и не изобретаем новый формат пакетов.</p>
+    </div>
+    <div class="benefit">
+      <div class="benefit__icon">🧹</div>
+      <h3>Самоочистка</h3>
+      <p><code>bratan-tidy</code> встроен в pacman <em>и</em> в еженедельный systemd-таймер. Сироты, устаревший кэш и старые ядра не накапливаются.</p>
+    </div>
+    <div class="benefit">
+      <div class="benefit__icon">⇲</div>
+      <h3>AUR через обычный <code>pacman</code></h3>
+      <p>Никакого нового хелпера. <code>sudo pacman -S brave-bin</code> просто работает, автоматом падает в AUR через <code>paru</code> если надо.</p>
+    </div>
+    <div class="benefit">
+      <div class="benefit__icon">⚡</div>
+      <h3>Chaotic-AUR из коробки</h3>
+      <p>Самые популярные AUR-пакеты приходят как готовые бинарники. Никаких 20-минутных компиляций и фейлов <code>makepkg</code>.</p>
+    </div>
+    <div class="benefit">
+      <div class="benefit__icon">🪟</div>
+      <h3>Готовый рабочий стол</h3>
+      <p>i3wm + greeter ly + GRUB-тема Catppuccin + подобранные dotfiles. Включил — зашёл — работаешь. Тюнить ничего не нужно.</p>
+    </div>
+    <div class="benefit">
+      <div class="benefit__icon">🔌</div>
+      <h3>Hybrid ISO</h3>
+      <p>Один образ 1.5 GB грузится с BIOS <em>и</em> UEFI; <code>dd</code> на флешку — и поехали. Никакого специального софта.</p>
+    </div>
+    <div class="benefit">
+      <div class="benefit__icon">🐳</div>
+      <h3>Собирается где угодно</h3>
+      <p><code>make iso-docker</code> на любой Linux-машине с Docker. Arch-хост не нужен, чтобы собрать свою сборку BratanOS.</p>
+    </div>
+    <div class="benefit">
+      <div class="benefit__icon">📥</div>
+      <h3>Графический флешер в комплекте</h3>
+      <p>Tauri-приложение в стиле balenaEtcher для записи ISO. Новичку не нужно знать <code>dd</code>.</p>
+    </div>
+    <div class="benefit">
+      <div class="benefit__icon">⚖</div>
+      <h3>MIT-лицензия</h3>
+      <p>Форкай, продавай футболки, делай корпоративную сборку, печатай мерч. Весь репозиторий — &lt;3000 строк, читается за один вечер.</p>
+    </div>
+  </div>
+</section>
+
+<section id="tidy" class="section">
+  <h2>Как работает tidy</h2>
+  <p class="muted">Три слоя чистки, всё на <code>pacman</code> + <code>systemd</code> — никакого нового пакетного менеджера.</p>
+  <div class="grid-3">
+    <div class="card">
+      <h3>после каждого удаления</h3>
+      <p>Хук <code>PostTransaction</code> в pacman после любого <code>pacman -R</code> запускает <code>bratan-tidy --auto</code> — сироты и кэш улетают сразу.</p>
+    </div>
+    <div class="card">
+      <h3>еженедельный таймер</h3>
+      <p>Таймер <code>systemd</code> запускает то же самое раз в неделю (idle-class IO, только от сети) — даже забытая машина остаётся чистой.</p>
+    </div>
+    <div class="card">
+      <h3>по требованию</h3>
+      <p><code>bratan-tidy --status</code> покажет, сколько можно освободить; <code>--apply</code> чистит; <code>--auto</code> — неинтерактивный режим для хуков.</p>
+    </div>
+  </div>
+</section>
+
+<section id="aur" class="section">
+  <h2>AUR через обычный <code>pacman</code></h2>
+  <p class="muted">Никаких новых команд. <code>pacman</code> обёрнут так, что отсутствующие пакеты прозрачно тянутся из AUR.</p>
+  <pre class="terminal"><span class="prompt">$</span> sudo pacman -S brave-bin
+:: <span class="t-accent">[bratanos]</span> brave-bin не найден в основных репах — fallback в AUR через paru
+:: собираю brave-bin через paru…
+✓ brave-bin установлен</pre>
+  <p>Большая часть популярных AUR-пакетов также приходит готовыми бинарниками через <a href="https://aur.chaotic.cx/">Chaotic-AUR</a>, который включён по умолчанию — компиляция вообще не нужна.</p>
+</section>
+
+<section id="roadmap" class="section">
+  <h2>В разработке — экосистема <code>bratan-*</code></h2>
+  <p class="muted">Набор первопартийных приложений, все темизированы и подобраны под BratanOS. Каждое — отдельный репозиторий, ставится через обычный <code>pacman</code>, как только зарелизим.</p>
+  <div class="roadmap">
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-flasher</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.1</span>
+      </header>
+      <p>USB-флешер в стиле balenaEtcher на Tauri (Rust + web). Уже в репо в <code>installer/</code> — Linux-бэкенд полностью рабочий.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-recorder</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.2</span>
+      </header>
+      <p>Запись экрана и микрофона в один клик, на клавише <kbd>Print</kbd>. Обёртка над <code>wf-recorder</code> (Wayland) и <code>ffmpeg</code> (X11). Складывает в <code>~/Videos/bratan-recorder/</code>.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-photos</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.2</span>
+      </header>
+      <p>Быстрый просмотрщик (<code>imv</code>) + лёгкий редактор: поворот, отражение, интерактивный кроп (через <code>slop</code>), ресайз, конвертация форматов — всё через ImageMagick.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-music</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.2</span>
+      </header>
+      <p>MPD + ncmpcpp с Catppuccin-конфигом и биндами i3 под медиа-клавиши. <code>bratan-music setup</code> генерит рабочий конфиг в один проход.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-mail</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.2</span>
+      </header>
+      <p>Thunderbird с профилем BratanOS: тёмная тема, удалённые картинки блокируются, телеметрия отключена, GPG готов, Catppuccin <code>userChrome.css</code>.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-browser</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.2</span>
+      </header>
+      <p>Обёртка над Firefox / LibreWolf с системным <code>policies.json</code>: телеметрия выкл., uBlock Origin предустановлен, DuckDuckGo по умолчанию, Catppuccin chrome.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-office</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.2</span>
+      </header>
+      <p>LibreOffice с Catppuccin-овым <code>registrymodifications.xcu</code>, шаблоном BratanOS и экспортом в PDF одной командой <code>bratan-office pdf FILE</code>.</p>
+    </article>
+    <article class="rmcard">
+      <header>
+        <span class="rmcard__name">bratan-store</span>
+        <span class="rmcard__status">планируется</span>
+      </header>
+      <p>Графический фронт для <code>pacman</code> + Chaotic-AUR + AUR. Поиск, установка, обновления, чистка — всё кликабельно. Для тех, кто хочет мощь Arch с GUI.</p>
+    </article>
+    <article class="rmcard">
+      <header>
+        <span class="rmcard__name">bratan-installer</span>
+        <span class="rmcard__status">планируется</span>
+      </header>
+      <p>Графическая альтернатива <code>archinstall</code>: дефолты BratanOS уже выбраны (i3, ly, tidy, Chaotic-AUR), двуязычный интерфейс, шифрованный root по умолчанию.</p>
+    </article>
+    <article class="rmcard">
+      <header>
+        <span class="rmcard__name">bratan-cloud</span>
+        <span class="rmcard__status">планируется</span>
+      </header>
+      <p>Опциональная синхронизация dotfiles и состояния. Идёт с рецептом self-hosted-бэкенда; либо просто укажи свой git remote.</p>
+    </article>
+  </div>
+  <p class="muted" style="margin-top: 18px;">
+    Хочешь что-то из списка раньше? Открой issue на
+    <a href="https://github.com/blessblissmari/bratanos/issues">GitHub</a> с use case — так мы расставляем приоритеты.
+  </p>
+</section>
+
+<section class="section">
+  <h2>FAQ</h2>
+  <details>
+    <summary>Почему не просто NixOS?</summary>
+    <p>Nix решает проблему, но цена — новый язык, derivations, flakes и кривая обучения. BratanOS сохраняет простоту Arch и просто наводит порядок в том, что уже есть.</p>
+  </details>
+  <details>
+    <summary>Это реально отдельный дистр или просто конфиг?</summary>
+    <p>Это downstream Arch — те же пакеты, те же ядра, тот же <code>pacman</code>. «Дистр» — это профиль archiso, набор инструментов <code>bratan-*</code> и подобранные дефолты (i3, ly, GRUB-тема, Chaotic-AUR из коробки).</p>
+  </details>
+  <details>
+    <summary>Можно поставить bratan-tidy на чистый Arch без переустановки?</summary>
+    <p>Да. Клонируй репо и сделай <code>sudo make install-tidy</code> — он просто положит скрипт + systemd-юнит + pacman-хук на место.</p>
+  </details>
+  <details>
+    <summary>Что в v0.2 по сравнению с v0.1?</summary>
+    <p>v0.1 это сам дистрибутив + <code>bratan-flasher</code>. v0.2 добавляет шесть первопартийных приложений: <code>bratan-recorder</code>, <code>bratan-photos</code>, <code>bratan-music</code>, <code>bratan-mail</code>, <code>bratan-browser</code> и <code>bratan-office</code> — все уже в live-ISO по умолчанию. В roadmap остаётся: <code>bratan-store</code>, <code>bratan-installer</code> и <code>bratan-cloud</code>.</p>
+  </details>
+</section>
+
+<footer>
+  <span>BratanOS · MIT · сделано для всех, кто устал от <code>~/.cache</code>, разрастающегося до 14 GB</span>
+  <a href="https://github.com/blessblissmari/bratanos">github.com/blessblissmari/bratanos</a>
+</footer>
+
+<script src="../main.js"></script>
+</body>
+</html>

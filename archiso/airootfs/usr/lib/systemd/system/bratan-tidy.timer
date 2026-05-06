@@ -1,0 +1,12 @@
+[Unit]
+Description=Run BratanOS tidy weekly
+Documentation=man:bratan-tidy(1)
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=1w
+Persistent=true
+RandomizedDelaySec=30min
+
+[Install]
+WantedBy=timers.target

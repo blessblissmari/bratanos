@@ -1,0 +1,16 @@
+[Unit]
+Description=BratanOS automatic tidy (orphans, cache, journal)
+ConditionACPower=true
+After=network-online.target
+Documentation=man:bratan-tidy(1)
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/bratanos/tidy.conf
+ExecStart=/usr/bin/bratan-tidy --auto orphans cache journal symlinks
+Nice=19
+IOSchedulingClass=idle
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=true
+NoNewPrivileges=true

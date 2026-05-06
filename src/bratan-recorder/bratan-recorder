@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+# bratan-recorder — one-click screen + mic recording for BratanOS.
+#
+# Usage:
+#   bratan-recorder              start recording (or stop if already running)
+#   bratan-recorder start        force start
+#   bratan-recorder stop         force stop
+#   bratan-recorder status       show current state
+#   bratan-recorder --help       this help
+#
+# Output goes to ~/Videos/bratan-recorder/<timestamp>.mp4
+# Notifications via notify-send (dunst / mako).
+
+set -euo pipefail
+
+RECORDING_DIR="${HOME}/Videos/bratan-recorder"
+PIDFILE="/tmp/bratan-recorder-${USER}.pid"
+LOCKFILE="/tmp/bratan-recorder-${USER}.lock"
+OUTFILE=""
+
+notify() {
+    command -v notify-send >/dev/null 2>&1 && notify-send -a "bratan-recorder" "$@" || true
+}
+
+is_recording() {
+    [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null
+}
+
+detect_backend() {
+    if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+        if command -v wf-recorder >/dev/null 2>&1; then
+            echo "wf-recorder"
+            return
+        fi
+    fi
+    if command -v ffmpeg >/dev/null 2>&1; then
+        echo "ffmpeg"
+        return
+    fi
+    echo "none"
+}
+
+get_audio_source() {
+    if command -v pactl >/dev/null 2>&1; then
+        local src
+        src=$(pactl get-default-source 2>/dev/null || true)
+        [[ -n "$src" ]] && echo "$src" && return
+    fi
+    if command -v wpctl >/dev/null 2>&1; then
+        echo "auto"
+        return
+    fi
+    echo ""
+}
+
+get_screen_resolution() {
+    if command -v xdpyinfo >/dev/null 2>&1; then
+        xdpyinfo 2>/dev/null | awk '/dimensions:/ {print $2}' | head -1
+        return
+    fi
+    if command -v xrandr >/dev/null 2>&1; then
+        xrandr 2>/dev/null | awk '/\*/ {print $1}' | head -1
+        return
+    fi
+    echo "1920x1080"
+}
+
+start_recording() {
+    if is_recording; then
+        echo "Already recording (pid $(cat "$PIDFILE")). Use 'bratan-recorder stop' to stop."
+        exit 1
+    fi
+
+    mkdir -p "$RECORDING_DIR"
+    local timestamp
+    timestamp=$(date +%Y-%m-%d_%H-%M-%S)
+    OUTFILE="${RECORDING_DIR}/${timestamp}.mp4"
+
+    local backend audio_src
+    backend=$(detect_backend)
+    audio_src=$(get_audio_source)
+
+    case "$backend" in
+        wf-recorder)
+            local audio_args=()
+            if [[ -n "$audio_src" ]]; then
+                if [[ "$audio_src" == "auto" ]]; then
+                    audio_args=(--audio)
+                else
+                    audio_args=(--audio="$audio_src")
+                fi
+            fi
+            wf-recorder -f "$OUTFILE" "${audio_args[@]}" &
+            ;;
+        ffmpeg)
+            local res audio_args=()
+            res=$(get_screen_resolution)
+            if [[ -n "$audio_src" && "$audio_src" != "auto" ]]; then
+                audio_args=(-f pulse -i "$audio_src")
+            elif command -v pactl >/dev/null 2>&1; then
+                audio_args=(-f pulse -i default)
+            fi
+            ffmpeg -y -video_size "$res" -framerate 30 \
+                -f x11grab -i "${DISPLAY:-:0}" \
+                "${audio_args[@]}" \
+                -c:v libx264 -preset ultrafast -crf 20 \
+                -c:a aac -b:a 128k \
+                "$OUTFILE" </dev/null >/dev/null 2>&1 &
+            ;;
+        none)
+            echo "Error: neither wf-recorder nor ffmpeg found." >&2
+            echo "Install one: sudo pacman -S wf-recorder   (wayland)" >&2
+            echo "             sudo pacman -S ffmpeg         (x11)" >&2
+            exit 1
+            ;;
+    esac
+
+    local pid=$!
+    echo "$pid" > "$PIDFILE"
+    echo "$OUTFILE" > "$LOCKFILE"
+    notify "Recording started" "Saving to ${OUTFILE##*/}\nBackend: $backend"
+    echo "Recording started (pid $pid, backend $backend)"
+    echo "Output: $OUTFILE"
+}
+
+stop_recording() {
+    if ! is_recording; then
+        echo "Not recording."
+        exit 1
+    fi
+
+    local pid
+    pid=$(cat "$PIDFILE")
+    kill -INT "$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null || true
+    # Wait up to 5s for graceful exit
+    for _ in $(seq 1 50); do
+        kill -0 "$pid" 2>/dev/null || break
+        sleep 0.1
+    done
+    kill -9 "$pid" 2>/dev/null || true
+
+    local outfile=""
+    [[ -f "$LOCKFILE" ]] && outfile=$(cat "$LOCKFILE")
+    rm -f "$PIDFILE" "$LOCKFILE"
+
+    if [[ -n "$outfile" && -f "$outfile" ]]; then
+        local size
+        size=$(du -h "$outfile" | cut -f1)
+        notify "Recording saved" "${outfile##*/} ($size)"
+        echo "Recording saved: $outfile ($size)"
+    else
+        notify "Recording stopped" "No output file found."
+        echo "Recording stopped."
+    fi
+}
+
+show_status() {
+    if is_recording; then
+        local pid outfile=""
+        pid=$(cat "$PIDFILE")
+        [[ -f "$LOCKFILE" ]] && outfile=$(cat "$LOCKFILE")
+        echo "Recording in progress (pid $pid)"
+        [[ -n "$outfile" ]] && echo "Output: $outfile"
+    else
+        echo "Not recording."
+    fi
+    echo "Output directory: $RECORDING_DIR"
+    local count
+    count=$(find "$RECORDING_DIR" -maxdepth 1 -name '*.mp4' 2>/dev/null | wc -l)
+    echo "Saved recordings: $count"
+}
+
+show_help() {
+    sed -n '2,/^$/s/^# \?//p' "$0"
+}
+
+case "${1:-toggle}" in
+    start)          start_recording ;;
+    stop)           stop_recording ;;
+    toggle)
+        if is_recording; then
+            stop_recording
+        else
+            start_recording
+        fi
+        ;;
+    status)         show_status ;;
+    -h|--help|help) show_help ;;
+    *)
+        echo "Unknown command: $1" >&2
+        show_help >&2
+        exit 1
+        ;;
+esac

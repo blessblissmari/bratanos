@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+#
+# bratan-flash-persistent — write a BratanOS ISO to a USB stick AND give
+# it a persistent overlay partition labeled BRATAN_PERSIST. After flashing,
+# pick the "BratanOS (persistent)" entry in the bootloader and your changes
+# (installed packages, ~/.config, files in $HOME) survive reboots.
+#
+# Why this script exists:
+#   `dd` writes the ISO byte-for-byte. The result is a partition exactly the
+#   size of the ISO (~1.5 GB). The rest of your USB stick sits unallocated.
+#   This script does the dd, then carves the leftover space into a second
+#   ext4 partition with the right label so the archiso `cow_label=` parameter
+#   finds it on next boot.
+#
+# Usage:
+#   sudo bratan-flash-persistent ISO_FILE DEVICE
+#       e.g. sudo bratan-flash-persistent bratanos-2026.05.06-x86_64.iso /dev/sdb
+#
+# This will WIPE /dev/sdb. Triple-check the device with `lsblk`.
+
+set -euo pipefail
+
+err()  { printf '\e[31m[!]\e[0m %s\n' "$*" >&2; }
+info() { printf '\e[36m[*]\e[0m %s\n' "$*"; }
+ok()   { printf '\e[32m[+]\e[0m %s\n' "$*"; }
+
+usage() {
+    sed -n '3,21p' "$0" | sed 's/^# \?//'
+    exit "${1:-0}"
+}
+
+require() {
+    command -v "$1" >/dev/null 2>&1 || { err "missing tool: $1"; exit 1; }
+}
+
+[[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] && usage 0
+[[ $# -eq 2 ]] || usage 1
+
+iso="$1"; dev="$2"
+
+[[ -f "$iso" ]] || { err "ISO not found: $iso"; exit 1; }
+[[ -b "$dev" ]] || { err "not a block device: $dev"; exit 1; }
+[[ "$(id -u)" -eq 0 ]] || { err "must run as root"; exit 1; }
+
+require dd
+require parted
+require partprobe
+require mkfs.ext4
+require lsblk
+
+# Refuse to overwrite anything that even smells like a system disk.
+case "$dev" in
+    /dev/sda|/dev/nvme0n1|/dev/mmcblk0)
+        err "refusing to flash $dev — looks like a system disk"
+        err "use a clearly removable USB device, e.g. /dev/sdb or /dev/sdc"
+        exit 1
+        ;;
+esac
+
+# Show what we're about to nuke.
+info "target device:"
+lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,LABEL "$dev"
+echo
+read -r -p "this will WIPE $dev. type YES to continue: " confirm
+[[ "$confirm" == "YES" ]] || { err "aborted."; exit 1; }
+
+# Unmount anything currently mounted from this device.
+for m in $(lsblk -ln -o MOUNTPOINT "$dev" | grep -v '^$'); do
+    info "unmounting $m"
+    umount "$m" || true
+done
+
+# Step 1: dd the ISO onto the device.
+info "writing ISO to $dev (this may take a few minutes)"
+dd if="$iso" of="$dev" bs=4M status=progress conv=fsync
+sync
+ok "ISO written"
+
+# Step 2: archiso writes a hybrid image with its own partition table.
+# We need to APPEND a third partition for persistence without touching
+# the existing two. We use parted's -s (script) mode.
+info "rereading partition table"
+partprobe "$dev"
+sleep 1
+
+# Find the end of the last existing partition.
+last_end=$(parted -ms "$dev" unit MiB print | tail -1 | awk -F: '{gsub(/MiB/, "", $3); print $3}')
+[[ -n "$last_end" ]] || { err "could not determine end of existing partitions"; exit 1; }
+
+info "last partition ends at ${last_end} MiB; carving persistence partition from there to end of disk"
+parted -s "$dev" mkpart BRATAN_PERSIST ext4 "${last_end}MiB" 100%
+partprobe "$dev"
+sleep 1
+
+# The new partition is the highest-numbered one.
+persist_part=$(lsblk -lnp -o NAME "$dev" | tail -1)
+[[ -b "$persist_part" ]] || { err "new partition $persist_part missing"; exit 1; }
+
+info "formatting $persist_part as ext4 with label BRATAN_PERSIST"
+mkfs.ext4 -F -L BRATAN_PERSIST "$persist_part"
+
+ok "done."
+echo
+echo "Boot from $dev and pick \"BratanOS (persistent — uses BRATAN_PERSIST partition)\""
+echo "in the GRUB / SYSLINUX menu. Your changes will survive reboots."

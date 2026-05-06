@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=BratanOS Office
+GenericName=Office Suite
+Comment=LibreOffice with BratanOS templates and theme
+Exec=bratan-office writer %F
+Icon=libreoffice-startcenter
+Terminal=false
+MimeType=application/vnd.oasis.opendocument.text;application/msword;application/vnd.openxmlformats-officedocument.wordprocessingml.document;application/pdf;
+Categories=Office;WordProcessor;X-BratanOS;
+Keywords=office;word;document;libreoffice;

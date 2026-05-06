@@ -1,0 +1,136 @@
+# Base
+base
+base-devel
+linux
+linux-firmware
+linux-headers
+intel-ucode
+amd-ucode
+mkinitcpio
+mkinitcpio-archiso
+mkinitcpio-nfs-utils
+syslinux
+edk2-shell
+efibootmgr
+grub
+memtest86+
+
+# Filesystems & disks
+btrfs-progs
+dosfstools
+exfatprogs
+e2fsprogs
+xfsprogs
+f2fs-tools
+ntfs-3g
+parted
+gptfdisk
+
+# Network
+networkmanager
+network-manager-applet
+iwd
+wpa_supplicant
+openssh
+rsync
+curl
+wget
+git
+
+# CLI essentials
+sudo
+vim
+nano
+neovim
+htop
+btop
+tree
+zsh
+bash-completion
+man-db
+man-pages
+less
+tmux
+fzf
+ripgrep
+fd
+bat
+jq
+unzip
+zip
+p7zip
+which
+
+# Pacman tooling — required for bratan-tidy
+pacman-contrib
+reflector
+archlinux-keyring
+archinstall
+
+# AUR fallback (paru is in Chaotic-AUR; pre-pulled if available, otherwise users install it post-boot)
+# AUR helpers themselves can't live in [core]/[extra]; the post-install script enables Chaotic-AUR which provides paru.
+
+# X11 / i3
+xorg-server
+xorg-xinit
+xorg-xrandr
+xorg-xset
+xorg-xprop
+i3-wm
+i3status
+i3lock
+dmenu
+rofi
+alacritty
+picom
+dunst
+feh
+maim
+xclip
+arandr
+lxappearance
+ttf-jetbrains-mono-nerd
+ttf-dejavu
+noto-fonts
+noto-fonts-emoji
+papirus-icon-theme
+
+# Display manager
+ly
+
+# Audio
+pipewire
+pipewire-pulse
+pipewire-alsa
+pipewire-jack
+wireplumber
+pavucontrol
+
+# Bluetooth
+bluez
+bluez-utils
+blueman
+
+# Tools the user likely wants on day one
+firefox
+thunar
+gvfs
+file-roller
+imagemagick
+
+# bratan-* packages — CLI deps
+# bratan-recorder
+ffmpeg
+slop
+# bratan-photos
+imv
+# bratan-music
+mpd
+mpc
+ncmpcpp
+# bratan-mail
+thunderbird
+# bratan-office
+libreoffice-fresh
+hunspell
+hunspell-en_us
