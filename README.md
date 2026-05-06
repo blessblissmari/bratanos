@@ -2,6 +2,9 @@
 
 > Arch Linux + i3wm with the discipline of NixOS — minus the complexity.
 
+**Site:** https://blessblissmari.github.io/bratanos/
+**Latest ISO:** [bratanos-2026.05.06-x86_64.iso](https://github.com/blessblissmari/bratanos/releases/download/v0.1.0/bratanos-2026.05.06-x86_64.iso) (1.5 GB hybrid)
+
 BratanOS keeps everything that makes Arch elegant (`pacman`, rolling
 release, the wiki) and bolts on the one thing it lacks: **automatic
 cleanup**. Orphan packages, stale caches, old kernels and `~/.cache`

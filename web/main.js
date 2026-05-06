@@ -18,11 +18,5 @@
   tabs.forEach(t => t.addEventListener("click", () => activate(t.dataset.tab)));
   activate(os);
 
-  // Highlight the matching download card.
-  document.querySelectorAll(".download-card").forEach(card => {
-    if (card.dataset.os === os) {
-      card.style.borderColor = "var(--accent)";
-      card.style.boxShadow   = "inset 0 0 0 1px var(--accent)";
-    }
-  });
+
 })();

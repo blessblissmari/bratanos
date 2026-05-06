@@ -131,23 +131,44 @@ nav ul a:hover { color: var(--text); }
 .section h2 { font-size: 28px; margin: 0 0 6px; }
 .section .muted { color: var(--muted); margin-bottom: 18px; }
 
-/* downloads */
-.downloads {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px; margin: 18px 0;
-}
-.download-card {
-  display: flex; flex-direction: column; gap: 4px;
-  padding: 16px; border-radius: 10px;
-  background: var(--surface);
+/* download */
+.download-cta {
+  display: flex; align-items: center; gap: 18px;
+  padding: 22px 24px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(137,180,250,0.08), rgba(180,190,254,0.06));
   border: 1px solid var(--line);
   color: var(--text);
+  margin: 18px 0 8px;
+  transition: transform .08s ease, border-color .15s ease, background .2s ease;
 }
-.download-card:hover { border-color: var(--accent); color: var(--text); }
-.download-card__os { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-.download-card strong { font-size: 18px; }
-.download-card .muted { font-size: 12px; color: var(--muted); }
+.download-cta:hover {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, rgba(137,180,250,0.18), rgba(180,190,254,0.12));
+  color: var(--text);
+  transform: translateY(-1px);
+}
+.download-cta__main { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.download-cta__label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent);
+  font-weight: 700;
+}
+.download-cta strong {
+  font-size: 20px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  word-break: break-all;
+}
+.download-cta .muted { font-size: 13px; color: var(--muted); }
+.download-cta__arrow {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  display: grid; place-items: center;
+  font-size: 22px; font-weight: 800;
+  flex-shrink: 0;
+}
+.download-meta { font-size: 12px; word-break: break-all; }
 
 /* tabs */
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 14px 0; }
