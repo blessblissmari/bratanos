@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+# bratan-photos — quick image viewer + light editor for BratanOS.
+#
+# Usage:
+#   bratan-photos [FILE|DIR]      open image(s) in viewer
+#   bratan-photos edit FILE       open rofi menu with quick edits
+#   bratan-photos crop FILE       interactive crop (select region)
+#   bratan-photos rotate FILE     rotate 90° clockwise
+#   bratan-photos resize FILE WxH resize to WxH
+#   bratan-photos --help          this help
+#
+# Viewer:  imv (preferred) or feh
+# Editor:  ImageMagick (convert/magick)
+# Picker:  rofi or dmenu
+
+set -euo pipefail
+
+viewer_cmd() {
+    if command -v imv >/dev/null 2>&1; then
+        echo "imv"
+    elif command -v feh >/dev/null 2>&1; then
+        echo "feh"
+    else
+        echo ""
+    fi
+}
+
+picker_cmd() {
+    if command -v rofi >/dev/null 2>&1; then
+        echo "rofi -dmenu -p bratan-photos"
+    elif command -v dmenu >/dev/null 2>&1; then
+        echo "dmenu -p bratan-photos:"
+    else
+        echo ""
+    fi
+}
+
+require_magick() {
+    if ! command -v magick >/dev/null 2>&1 && ! command -v convert >/dev/null 2>&1; then
+        echo "Error: ImageMagick not found. Install: sudo pacman -S imagemagick" >&2
+        exit 1
+    fi
+}
+
+magick_cmd() {
+    if command -v magick >/dev/null 2>&1; then
+        echo "magick"
+    else
+        echo "convert"
+    fi
+}
+
+notify() {
+    command -v notify-send >/dev/null 2>&1 && notify-send -a "bratan-photos" "$@" || true
+}
+
+backup_file() {
+    local f="$1"
+    local bak="${f%.*}.bak.${f##*.}"
+    if [[ ! -f "$bak" ]]; then
+        cp "$f" "$bak"
+    fi
+}
+
+view_images() {
+    local target="${1:-.}"
+    local v
+    v=$(viewer_cmd)
+    if [[ -z "$v" ]]; then
+        echo "Error: no image viewer found. Install: sudo pacman -S imv" >&2
+        exit 1
+    fi
+    if [[ -d "$target" ]]; then
+        exec "$v" "$target"
+    else
+        exec "$v" "$target"
+    fi
+}
+
+do_rotate() {
+    local file="$1"
+    require_magick
+    backup_file "$file"
+    $(magick_cmd) "$file" -rotate 90 "$file"
+    notify "Rotated" "${file##*/} — 90° clockwise"
+    echo "Rotated: $file"
+}
+
+do_resize() {
+    local file="$1" geometry="$2"
+    require_magick
+    backup_file "$file"
+    $(magick_cmd) "$file" -resize "$geometry" "$file"
+    notify "Resized" "${file##*/} → $geometry"
+    echo "Resized: $file → $geometry"
+}
+
+do_crop() {
+    local file="$1"
+    require_magick
+
+    # If running under X11, try interactive selection via slop
+    if [[ -n "${DISPLAY:-}" ]] && command -v slop >/dev/null 2>&1; then
+        echo "Select crop region with your mouse..."
+        local geo
+        geo=$(slop -f '%wx%h+%x+%y' 2>/dev/null || true)
+        if [[ -n "$geo" ]]; then
+            backup_file "$file"
+            $(magick_cmd) "$file" -crop "$geo" +repage "$file"
+            notify "Cropped" "${file##*/} — $geo"
+            echo "Cropped: $file ($geo)"
+            return
+        fi
+    fi
+
+    # Fallback: ask for geometry string
+    echo "Enter crop geometry (e.g. 800x600+100+50):"
+    read -r geo
+    if [[ -z "$geo" ]]; then
+        echo "Cancelled."
+        exit 0
+    fi
+    backup_file "$file"
+    $(magick_cmd) "$file" -crop "$geo" +repage "$file"
+    notify "Cropped" "${file##*/} — $geo"
+    echo "Cropped: $file ($geo)"
+}
+
+do_edit_menu() {
+    local file="$1"
+    require_magick
+    local picker
+    picker=$(picker_cmd)
+    if [[ -z "$picker" ]]; then
+        echo "Error: rofi or dmenu required for edit menu." >&2
+        exit 1
+    fi
+
+    local choice
+    choice=$(printf "Rotate 90°\nRotate 180°\nRotate 270°\nFlip horizontal\nFlip vertical\nCrop (interactive)\nResize (half)\nResize (custom)\nConvert to PNG\nConvert to JPG" \
+        | $picker)
+
+    case "$choice" in
+        "Rotate 90°")       backup_file "$file"; $(magick_cmd) "$file" -rotate 90 "$file" ;;
+        "Rotate 180°")      backup_file "$file"; $(magick_cmd) "$file" -rotate 180 "$file" ;;
+        "Rotate 270°")      backup_file "$file"; $(magick_cmd) "$file" -rotate 270 "$file" ;;
+        "Flip horizontal")  backup_file "$file"; $(magick_cmd) "$file" -flop "$file" ;;
+        "Flip vertical")    backup_file "$file"; $(magick_cmd) "$file" -flip "$file" ;;
+        "Crop (interactive)") do_crop "$file"; return ;;
+        "Resize (half)")
+            backup_file "$file"
+            $(magick_cmd) "$file" -resize 50% "$file"
+            ;;
+        "Resize (custom)")
+            local geo
+            geo=$(echo "" | $picker)
+            [[ -n "$geo" ]] && { backup_file "$file"; $(magick_cmd) "$file" -resize "$geo" "$file"; }
+            ;;
+        "Convert to PNG")
+            local out="${file%.*}.png"
+            $(magick_cmd) "$file" "$out"
+            echo "Converted: $out"
+            ;;
+        "Convert to JPG")
+            local out="${file%.*}.jpg"
+            $(magick_cmd) "$file" -quality 92 "$out"
+            echo "Converted: $out"
+            ;;
+        *)
+            echo "Cancelled."
+            exit 0
+            ;;
+    esac
+    notify "Edit done" "${file##*/}: $choice"
+    echo "Done: $choice on $file"
+}
+
+show_help() {
+    sed -n '2,/^$/s/^# \?//p' "$0"
+}
+
+case "${1:-}" in
+    ""|-h|--help|help)
+        show_help
+        ;;
+    edit)
+        [[ -z "${2:-}" ]] && { echo "Usage: bratan-photos edit FILE" >&2; exit 1; }
+        do_edit_menu "$2"
+        ;;
+    crop)
+        [[ -z "${2:-}" ]] && { echo "Usage: bratan-photos crop FILE" >&2; exit 1; }
+        do_crop "$2"
+        ;;
+    rotate)
+        [[ -z "${2:-}" ]] && { echo "Usage: bratan-photos rotate FILE" >&2; exit 1; }
+        do_rotate "$2"
+        ;;
+    resize)
+        [[ -z "${2:-}" || -z "${3:-}" ]] && { echo "Usage: bratan-photos resize FILE WxH" >&2; exit 1; }
+        do_resize "$2" "$3"
+        ;;
+    *)
+        view_images "$1"
+        ;;
+esac

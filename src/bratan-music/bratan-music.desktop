@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=BratanOS Music
+GenericName=Music Player
+Comment=Minimal MPD-based music player
+Exec=alacritty -e bratan-music
+Icon=audio-x-generic
+Terminal=false
+Categories=AudioVideo;Audio;Player;X-BratanOS;
+Keywords=music;player;mpd;ncmpcpp;

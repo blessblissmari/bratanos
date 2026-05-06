@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=BratanOS Browser
+GenericName=Web Browser
+Comment=Privacy-first browser with BratanOS theme
+Exec=bratan-browser %u
+Icon=web-browser
+Terminal=false
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+Categories=Network;WebBrowser;X-BratanOS;
+Keywords=browser;web;internet;firefox;librewolf;

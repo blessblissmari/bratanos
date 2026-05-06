@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+# bratan-office — LibreOffice with BratanOS defaults.
+#
+# Usage:
+#   bratan-office [FILE]          launch LibreOffice (Writer by default)
+#   bratan-office writer [FILE]   launch Writer
+#   bratan-office calc [FILE]     launch Calc
+#   bratan-office impress [FILE]  launch Impress
+#   bratan-office draw [FILE]     launch Draw
+#   bratan-office pdf FILE        one-shot PDF export
+#   bratan-office setup           install BratanOS templates + config
+#   bratan-office --help          this help
+#
+# Templates installed to: ~/.config/libreoffice/user/template/bratanos/
+
+set -euo pipefail
+
+LO_USER="${HOME}/.config/libreoffice/4/user"
+TEMPLATE_DIR="${LO_USER}/template/bratanos"
+
+require_libreoffice() {
+    if ! command -v libreoffice >/dev/null 2>&1; then
+        echo "Error: libreoffice not found. Install: sudo pacman -S libreoffice-fresh" >&2
+        exit 1
+    fi
+}
+
+do_setup() {
+    require_libreoffice
+    mkdir -p "$TEMPLATE_DIR" "$LO_USER/config"
+
+    # registrymodifications.xcu — dark mode + sane defaults
+    local reg_file="${LO_USER}/registrymodifications.xcu"
+    if [[ ! -f "$reg_file" ]]; then
+        cat > "$reg_file" << 'REGXML'
+<?xml version="1.0" encoding="UTF-8"?>
+<oor:items xmlns:oor="http://openoffice.org/2001/registry"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- Dark color scheme -->
+  <item oor:path="/org.openoffice.Office.Common/Appearance">
+    <prop oor:name="ApplicationAppearance" oor:op="fuse">
+      <value>2</value>
+    </prop>
+  </item>
+  <!-- Default save format: ODF -->
+  <item oor:path="/org.openoffice.Setup/Office/Factories/com.sun.star.text.TextDocument">
+    <prop oor:name="ooSetupFactoryDefaultFilter" oor:op="fuse">
+      <value>writer8</value>
+    </prop>
+  </item>
+  <!-- Show formatting marks -->
+  <item oor:path="/org.openoffice.Office.Writer/Content/NonprintingCharacter">
+    <prop oor:name="ParagraphEnd" oor:op="fuse">
+      <value>true</value>
+    </prop>
+  </item>
+  <!-- Autosave every 3 minutes -->
+  <item oor:path="/org.openoffice.Office.Recovery">
+    <prop oor:name="AutoSaveEnabled" oor:op="fuse">
+      <value>true</value>
+    </prop>
+    <prop oor:name="AutoSaveTimeIntervall" oor:op="fuse">
+      <value>3</value>
+    </prop>
+  </item>
+  <!-- Disable tip of the day -->
+  <item oor:path="/org.openoffice.Office.Common/Misc">
+    <prop oor:name="ShowTipOfTheDay" oor:op="fuse">
+      <value>false</value>
+    </prop>
+  </item>
+</oor:items>
+REGXML
+        echo "Created: $reg_file"
+    fi
+
+    # Create minimal A4 template
+    create_writer_template
+    echo "Setup complete. Templates in: $TEMPLATE_DIR"
+}
+
+create_writer_template() {
+    # Generate a simple ODT template via a Python helper (uses LO's UNO)
+    # If python-uno isn't available, create a placeholder
+    if python3 -c "import uno" 2>/dev/null; then
+        python3 << 'PYEOF'
+import subprocess, os
+tdir = os.path.expanduser("~/.config/libreoffice/4/user/template/bratanos")
+os.makedirs(tdir, exist_ok=True)
+# Use libreoffice headless to create a blank document with BratanOS header
+odt = os.path.join(tdir, "bratan-doc.ott")
+if not os.path.exists(odt):
+    # Create a minimal ODF template with correct structure
+    import zipfile, io
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w') as zf:
+        zf.writestr('mimetype', 'application/vnd.oasis.opendocument.text-template')
+        zf.writestr('META-INF/manifest.xml', '''<?xml version="1.0" encoding="UTF-8"?>
+<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0">
+  <manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.text-template"/>
+  <manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>
+  <manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/>
+</manifest:manifest>''')
+        zf.writestr('content.xml', '''<?xml version="1.0" encoding="UTF-8"?>
+<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0">
+  <office:body><office:text>
+    <text:p text:style-name="Title">BratanOS Document</text:p>
+    <text:p/>
+  </office:text></office:body>
+</office:document-content>''')
+        zf.writestr('styles.xml', '''<?xml version="1.0" encoding="UTF-8"?>
+<office:document-styles xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">
+  <office:styles>
+    <style:style style:name="Title" style:family="paragraph" style:class="chapter">
+      <style:paragraph-properties fo:text-align="start" fo:margin-bottom="0.5cm"/>
+      <style:text-properties fo:font-size="20pt" fo:font-weight="bold" fo:color="#89b4fa"
+        style:font-name="Inter"/>
+    </style:style>
+    <style:style style:name="Standard" style:family="paragraph">
+      <style:text-properties fo:font-size="11pt" fo:color="#cdd6f4"
+        style:font-name="Inter"/>
+    </style:style>
+  </office:styles>
+  <office:automatic-styles>
+    <style:page-layout style:name="pm1">
+      <style:page-layout-properties fo:page-width="21cm" fo:page-height="29.7cm"
+        fo:margin-top="2cm" fo:margin-bottom="2cm"
+        fo:margin-left="2.5cm" fo:margin-right="2.5cm"/>
+    </style:page-layout>
+  </office:automatic-styles>
+  <office:master-styles>
+    <style:master-page style:name="Standard" style:page-layout-name="pm1"/>
+  </office:master-styles>
+</office:document-styles>''')
+    with open(odt, 'wb') as f:
+        f.write(buf.getvalue())
+    print(f"Created template: {odt}")
+PYEOF
+    else
+        echo "(python3-uno not available — skipping template generation)"
+    fi
+}
+
+do_pdf_export() {
+    local file="$1"
+    require_libreoffice
+    if [[ ! -f "$file" ]]; then
+        echo "Error: file not found: $file" >&2
+        exit 1
+    fi
+    local outdir
+    outdir=$(dirname "$file")
+    libreoffice --headless --convert-to pdf --outdir "$outdir" "$file"
+    local base pdf
+    base=$(basename "${file%.*}")
+    pdf="${outdir}/${base}.pdf"
+    echo "Exported: $pdf"
+    command -v notify-send >/dev/null 2>&1 && notify-send -a "bratan-office" "PDF exported" "${pdf##*/}" || true
+}
+
+show_help() {
+    sed -n '2,/^$/s/^# \?//p' "$0"
+}
+
+case "${1:-writer}" in
+    writer)   require_libreoffice; exec libreoffice --writer "${@:2}" ;;
+    calc)     require_libreoffice; exec libreoffice --calc "${@:2}" ;;
+    impress)  require_libreoffice; exec libreoffice --impress "${@:2}" ;;
+    draw)     require_libreoffice; exec libreoffice --draw "${@:2}" ;;
+    pdf)
+        [[ -z "${2:-}" ]] && { echo "Usage: bratan-office pdf FILE" >&2; exit 1; }
+        do_pdf_export "$2"
+        ;;
+    setup)    do_setup ;;
+    -h|--help|help) show_help ;;
+    *)
+        # Assume it's a file
+        if [[ -f "$1" ]]; then
+            require_libreoffice
+            exec libreoffice "$@"
+        else
+            echo "Unknown command or file: $1" >&2
+            show_help >&2
+            exit 1
+        fi
+        ;;
+esac

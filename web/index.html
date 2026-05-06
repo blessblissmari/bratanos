@@ -203,26 +203,54 @@ sudo bratan-flasher</code></pre>
       </header>
       <p>balenaEtcher-style USB writer built on Tauri (Rust + web). Already in this repo under <code>installer/</code> — Linux backend fully working.</p>
     </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-recorder</span>
+        <span class="rmcard__status rmcard__status--shipped">shipped · v0.2</span>
+      </header>
+      <p>One-click screen + mic recording, bound to <kbd>Print</kbd>. Wraps <code>wf-recorder</code> on Wayland and <code>ffmpeg</code> on X11. Saves to <code>~/Videos/bratan-recorder/</code>.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-photos</span>
+        <span class="rmcard__status rmcard__status--shipped">shipped · v0.2</span>
+      </header>
+      <p>Fast image viewer (<code>imv</code>) + light editor: rotate, flip, crop (interactive via <code>slop</code>), resize, format convert. All powered by ImageMagick.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-music</span>
+        <span class="rmcard__status rmcard__status--shipped">shipped · v0.2</span>
+      </header>
+      <p>MPD + ncmpcpp with a Catppuccin config and i3 media-key bindings. <code>bratan-music setup</code> generates a working config in one shot.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-mail</span>
+        <span class="rmcard__status rmcard__status--shipped">shipped · v0.2</span>
+      </header>
+      <p>Thunderbird with a BratanOS profile: dark theme, remote images blocked by default, telemetry off, GPG ready, Catppuccin <code>userChrome.css</code>.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-browser</span>
+        <span class="rmcard__status rmcard__status--shipped">shipped · v0.2</span>
+      </header>
+      <p>Wraps Firefox / LibreWolf with a system-wide <code>policies.json</code>: telemetry off, uBlock Origin pre-installed, DuckDuckGo default, Catppuccin chrome.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-office</span>
+        <span class="rmcard__status rmcard__status--shipped">shipped · v0.2</span>
+      </header>
+      <p>LibreOffice with a Catppuccin <code>registrymodifications.xcu</code>, BratanOS template, and a one-shot <code>bratan-office pdf FILE</code> export.</p>
+    </article>
     <article class="rmcard">
       <header>
         <span class="rmcard__name">bratan-store</span>
         <span class="rmcard__status">planning</span>
       </header>
       <p>Graphical front-end for <code>pacman</code> + Chaotic-AUR + AUR. Search, install, update, cleanup — all clickable. For people who want Arch power with a GUI.</p>
-    </article>
-    <article class="rmcard">
-      <header>
-        <span class="rmcard__name">bratan-browser</span>
-        <span class="rmcard__status">planning</span>
-      </header>
-      <p>LibreWolf base, Catppuccin theme, privacy defaults, BratanOS-themed new-tab page, sane extension preset (uBO, KeePassXC, etc.).</p>
-    </article>
-    <article class="rmcard">
-      <header>
-        <span class="rmcard__name">bratan-office</span>
-        <span class="rmcard__status">planning</span>
-      </header>
-      <p>LibreOffice with BratanOS templates, a tighter Thunar/i3 integration, and one-shot PDF export shortcuts. Productivity without enterprise bloat.</p>
     </article>
     <article class="rmcard">
       <header>
@@ -233,38 +261,10 @@ sudo bratan-flasher</code></pre>
     </article>
     <article class="rmcard">
       <header>
-        <span class="rmcard__name">bratan-mail</span>
-        <span class="rmcard__status">planning</span>
-      </header>
-      <p>Thunderbird with BratanOS theme, dark by default, IMAP/SMTP autodiscovery, GPG ready out of the box.</p>
-    </article>
-    <article class="rmcard">
-      <header>
-        <span class="rmcard__name">bratan-music</span>
-        <span class="rmcard__status">planning</span>
-      </header>
-      <p>Minimal MPD-based player wrapped in a Tauri shell, with i3-friendly keybinds and a tasteful waveform/cover art view.</p>
-    </article>
-    <article class="rmcard">
-      <header>
-        <span class="rmcard__name">bratan-photos</span>
-        <span class="rmcard__status">planning</span>
-      </header>
-      <p>Fast image viewer + light editor (crop / rotate / export). Reads RAW. No subscription. No cloud unless you wire it yourself.</p>
-    </article>
-    <article class="rmcard">
-      <header>
         <span class="rmcard__name">bratan-cloud</span>
         <span class="rmcard__status">planning</span>
       </header>
       <p>Optional dotfiles + state sync. Ships with a self-hosted backend recipe; or point at any git remote you already have.</p>
-    </article>
-    <article class="rmcard">
-      <header>
-        <span class="rmcard__name">bratan-recorder</span>
-        <span class="rmcard__status">planning</span>
-      </header>
-      <p>One-click screen + mic recording. Wraps <code>wf-recorder</code>/<code>obs-cli</code> and saves to <code>~/Videos/bratan-recorder/</code>.</p>
     </article>
   </div>
   <p class="muted" style="margin-top: 18px;">
@@ -288,8 +288,8 @@ sudo bratan-flasher</code></pre>
     <p>Yes. Clone the repo and <code>sudo make install-tidy</code> — it just drops the script + systemd unit + pacman hook into place.</p>
   </details>
   <details>
-    <summary>When will <code>bratan-browser</code> / <code>bratan-office</code> land?</summary>
-    <p>No hard ETA. The roadmap above is intentionally optimistic — we'd rather ship one thing well than ship ten things half-finished. The flasher is in v0.1; the next two on the list are <code>bratan-store</code> and <code>bratan-installer</code>.</p>
+    <summary>What's in v0.2 vs v0.1?</summary>
+    <p>v0.1 shipped the distro itself plus <code>bratan-flasher</code>. v0.2 adds six more first-party apps: <code>bratan-recorder</code>, <code>bratan-photos</code>, <code>bratan-music</code>, <code>bratan-mail</code>, <code>bratan-browser</code> and <code>bratan-office</code> — all installed by default in the live ISO. Still on the roadmap: <code>bratan-store</code>, <code>bratan-installer</code> and <code>bratan-cloud</code>.</p>
   </details>
 </section>
 

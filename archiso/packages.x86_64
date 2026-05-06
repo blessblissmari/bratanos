@@ -117,3 +117,20 @@ thunar
 gvfs
 file-roller
 imagemagick
+
+# bratan-* packages — CLI deps
+# bratan-recorder
+ffmpeg
+slop
+# bratan-photos
+imv
+# bratan-music
+mpd
+mpc
+ncmpcpp
+# bratan-mail
+thunderbird
+# bratan-office
+libreoffice-fresh
+hunspell
+hunspell-en_us

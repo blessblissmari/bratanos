@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=BratanOS Recorder
+GenericName=Screen Recorder
+Comment=One-click screen + mic recording
+Exec=bratan-recorder
+Icon=media-record
+Terminal=false
+Categories=AudioVideo;Recorder;X-BratanOS;
+Keywords=record;screen;screencast;capture;

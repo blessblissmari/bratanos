@@ -1,0 +1,208 @@
+#!/usr/bin/env bash
+# bratan-browser — privacy-first browser for BratanOS.
+#
+# Usage:
+#   bratan-browser [URL]        launch browser (URL optional)
+#   bratan-browser setup        install policies + userChrome
+#   bratan-browser --help       this help
+#
+# Preferences: LibreWolf > Firefox. Falls back to whatever is installed.
+# Policies are deployed system-wide via /etc/bratan-browser/policies.json
+# (installed by BratanOS or via 'bratan-browser setup').
+
+set -euo pipefail
+
+POLICIES_SRC="/etc/bratan-browser/policies.json"
+
+detect_browser() {
+    local candidates=(librewolf firefox firefox-esr)
+    for b in "${candidates[@]}"; do
+        if command -v "$b" >/dev/null 2>&1; then
+            echo "$b"
+            return
+        fi
+    done
+    echo ""
+}
+
+browser_policies_dir() {
+    local browser="$1"
+    case "$browser" in
+        librewolf)
+            echo "/usr/lib/librewolf/distribution"
+            ;;
+        firefox|firefox-esr)
+            echo "/usr/lib/firefox/distribution"
+            ;;
+        *)
+            echo "/usr/lib/$browser/distribution"
+            ;;
+    esac
+}
+
+do_setup() {
+    local browser
+    browser=$(detect_browser)
+    if [[ -z "$browser" ]]; then
+        echo "Error: no supported browser found. Install: sudo pacman -S firefox" >&2
+        exit 1
+    fi
+
+    echo "Detected browser: $browser"
+
+    # Install system-wide policies.json
+    local dist_dir
+    dist_dir=$(browser_policies_dir "$browser")
+    if [[ -f "$POLICIES_SRC" ]]; then
+        sudo mkdir -p "$dist_dir"
+        sudo cp "$POLICIES_SRC" "$dist_dir/policies.json"
+        echo "Installed policies to: $dist_dir/policies.json"
+    else
+        echo "Warning: $POLICIES_SRC not found — creating default policies." >&2
+        install_default_policies "$dist_dir"
+    fi
+
+    # Install userChrome.css for the default profile
+    setup_profile "$browser"
+    echo "Setup complete for: $browser"
+}
+
+install_default_policies() {
+    local dist_dir="$1"
+    sudo mkdir -p "$dist_dir"
+    sudo tee "$dist_dir/policies.json" > /dev/null << 'POLICIES'
+{
+  "policies": {
+    "DisableTelemetry": true,
+    "DisableFirefoxStudies": true,
+    "DisablePocket": true,
+    "DisableFirefoxAccounts": false,
+    "DisableFormHistory": false,
+    "DontCheckDefaultBrowser": true,
+    "NoDefaultBookmarks": true,
+    "OfferToSaveLogins": false,
+    "PasswordManagerEnabled": false,
+    "Homepage": {
+      "URL": "https://blessblissmari.github.io/bratanos/",
+      "Locked": false,
+      "StartPage": "homepage"
+    },
+    "SearchEngines": {
+      "Default": "DuckDuckGo",
+      "Remove": ["Bing", "Google"]
+    },
+    "EnableTrackingProtection": {
+      "Value": true,
+      "Locked": false,
+      "Cryptomining": true,
+      "Fingerprinting": true
+    },
+    "ExtensionSettings": {
+      "uBlock0@raymondhill.net": {
+        "installation_mode": "normal_installed",
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi"
+      }
+    },
+    "Preferences": {
+      "browser.newtabpage.enabled": false,
+      "browser.startup.homepage_override.mstone": "ignore",
+      "browser.urlbar.suggest.quicksuggest.sponsored": false,
+      "browser.urlbar.suggest.quicksuggest.nonsponsored": false,
+      "extensions.pocket.enabled": false,
+      "browser.aboutwelcome.enabled": false,
+      "toolkit.legacyUserProfileCustomizations.stylesheets": true,
+      "ui.systemUsesDarkTheme": 1,
+      "layout.css.prefers-color-scheme.content-override": 0
+    }
+  }
+}
+POLICIES
+    echo "Installed default policies to: $dist_dir/policies.json"
+}
+
+setup_profile() {
+    local browser="$1"
+    # Find or create a default profile
+    local profiles_dir=""
+    case "$browser" in
+        librewolf)  profiles_dir="${HOME}/.librewolf" ;;
+        firefox*)   profiles_dir="${HOME}/.mozilla/firefox" ;;
+    esac
+
+    if [[ -z "$profiles_dir" ]]; then return; fi
+
+    local profile_path=""
+    if [[ -f "${profiles_dir}/profiles.ini" ]]; then
+        profile_path=$(awk -F= '/^\[Profile0?\]/{found=1} found && /^Path=/{print $2; exit}' \
+            "${profiles_dir}/profiles.ini" 2>/dev/null || true)
+    fi
+
+    if [[ -z "$profile_path" ]]; then
+        profile_path="bratan.default"
+    fi
+
+    local chrome_dir="${profiles_dir}/${profile_path}/chrome"
+    mkdir -p "$chrome_dir"
+
+    cat > "${chrome_dir}/userChrome.css" << 'CHROMECSS'
+/* BratanOS browser — catppuccin dark overrides */
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+:root {
+    --lwt-accent-color: #1e1e2e !important;
+    --lwt-text-color: #cdd6f4 !important;
+    --toolbar-bgcolor: #181825 !important;
+    --toolbar-color: #cdd6f4 !important;
+    --lwt-toolbar-field-background-color: #313244 !important;
+    --lwt-toolbar-field-color: #cdd6f4 !important;
+    --lwt-toolbar-field-border-color: #45475a !important;
+    --tab-line-color: #89b4fa !important;
+    --arrowpanel-background: #1e1e2e !important;
+    --arrowpanel-color: #cdd6f4 !important;
+    --arrowpanel-border-color: #313244 !important;
+}
+
+/* Tab bar */
+.tabbrowser-tab[selected] .tab-background {
+    border-bottom: 2px solid #89b4fa !important;
+}
+
+/* URL bar */
+#urlbar-background {
+    background-color: #313244 !important;
+    border-color: #45475a !important;
+}
+CHROMECSS
+
+    echo "Installed userChrome.css to: $chrome_dir"
+}
+
+show_help() {
+    sed -n '2,/^$/s/^# \?//p' "$0"
+}
+
+case "${1:-launch}" in
+    launch)
+        browser=$(detect_browser)
+        if [[ -z "$browser" ]]; then
+            echo "Error: no supported browser found. Install: sudo pacman -S firefox" >&2
+            exit 1
+        fi
+        exec "$browser" "${@:2}"
+        ;;
+    setup)
+        do_setup
+        ;;
+    -h|--help|help)
+        show_help
+        ;;
+    *)
+        # Assume it's a URL
+        browser=$(detect_browser)
+        if [[ -z "$browser" ]]; then
+            echo "Error: no supported browser found." >&2
+            exit 1
+        fi
+        exec "$browser" "$1" "${@:2}"
+        ;;
+esac

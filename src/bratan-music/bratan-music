@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+# bratan-music — mpd + ncmpcpp player for BratanOS.
+#
+# Usage:
+#   bratan-music              launch ncmpcpp (starts mpd if needed)
+#   bratan-music play         toggle play/pause
+#   bratan-music next         next track
+#   bratan-music prev         previous track
+#   bratan-music stop         stop playback
+#   bratan-music status       show current track
+#   bratan-music setup        create default mpd config + music dir
+#   bratan-music --help       this help
+#
+# Config:  ~/.config/mpd/mpd.conf  (created by 'bratan-music setup')
+# Library: ~/Music
+
+set -euo pipefail
+
+MPD_CONF="${HOME}/.config/mpd/mpd.conf"
+MPD_DIR="${HOME}/.config/mpd"
+MUSIC_DIR="${HOME}/Music"
+NCMPCPP_CONF_DIR="${HOME}/.config/ncmpcpp"
+
+ensure_mpd_running() {
+    if ! command -v mpd >/dev/null 2>&1; then
+        echo "Error: mpd not found. Install: sudo pacman -S mpd" >&2
+        exit 1
+    fi
+    if ! pgrep -u "$USER" mpd >/dev/null 2>&1; then
+        if [[ ! -f "$MPD_CONF" ]]; then
+            do_setup
+        fi
+        mpd "$MPD_CONF" 2>/dev/null || true
+        sleep 0.3
+    fi
+}
+
+do_setup() {
+    mkdir -p "$MPD_DIR" "$MPD_DIR/playlists" "$MUSIC_DIR" "$NCMPCPP_CONF_DIR"
+
+    if [[ ! -f "$MPD_CONF" ]]; then
+        cat > "$MPD_CONF" << 'MPDEOF'
+music_directory     "~/Music"
+playlist_directory  "~/.config/mpd/playlists"
+db_file             "~/.config/mpd/database"
+log_file            "~/.config/mpd/log"
+pid_file            "~/.config/mpd/pid"
+state_file          "~/.config/mpd/state"
+sticker_file        "~/.config/mpd/sticker.sql"
+
+auto_update         "yes"
+restore_paused      "yes"
+
+audio_output {
+    type    "pipewire"
+    name    "BratanOS PipeWire"
+}
+
+audio_output {
+    type    "pulse"
+    name    "BratanOS PulseAudio"
+}
+
+bind_to_address     "127.0.0.1"
+port                "6600"
+MPDEOF
+        echo "Created: $MPD_CONF"
+    fi
+
+    if [[ ! -f "${NCMPCPP_CONF_DIR}/config" ]]; then
+        cat > "${NCMPCPP_CONF_DIR}/config" << 'NCEOF'
+mpd_host = "127.0.0.1"
+mpd_port = 6600
+mpd_music_dir = "~/Music"
+
+# UI
+user_interface = alternative
+header_visibility = yes
+statusbar_visibility = yes
+titles_visibility = yes
+cyclic_scrolling = yes
+mouse_support = yes
+
+# Colors — catppuccin-ish
+colors_enabled = yes
+main_window_color = "white"
+header_window_color = "cyan"
+volume_color = "green"
+statusbar_color = "cyan"
+progressbar_color = "black:b"
+progressbar_elapsed_color = "cyan:b"
+
+# Format
+song_list_format = " $2%a$9 $8-$9 $3%t$9 $R$5%l$9"
+song_status_format = "{%a - }{%t}|{%f}"
+song_window_title_format = "bratan-music: {%a - }{%t}|{%f}"
+
+# Progress bar
+progressbar_look = "━━─"
+
+# Visualizer (if mpd fifo is enabled)
+visualizer_data_source = "/tmp/mpd.fifo"
+visualizer_output_name = "fifo"
+visualizer_in_stereo = yes
+visualizer_type = "wave"
+visualizer_look = "●▮"
+NCEOF
+        echo "Created: ${NCMPCPP_CONF_DIR}/config"
+    fi
+
+    if [[ ! -f "${NCMPCPP_CONF_DIR}/bindings" ]]; then
+        cat > "${NCMPCPP_CONF_DIR}/bindings" << 'BEOF'
+def_key "j"
+    scroll_down
+def_key "k"
+    scroll_up
+def_key "h"
+    previous_column
+def_key "l"
+    next_column
+def_key "g"
+    move_home
+def_key "G"
+    move_end
+def_key "d"
+    delete_playlist_items
+def_key "n"
+    next_found_item
+def_key "N"
+    previous_found_item
+BEOF
+        echo "Created: ${NCMPCPP_CONF_DIR}/bindings"
+    fi
+
+    echo "Setup complete. Put music in $MUSIC_DIR and run 'bratan-music'."
+}
+
+mpc_cmd() {
+    if ! command -v mpc >/dev/null 2>&1; then
+        echo "Error: mpc not found. Install: sudo pacman -S mpc" >&2
+        exit 1
+    fi
+    ensure_mpd_running
+    mpc "$@"
+}
+
+show_help() {
+    sed -n '2,/^$/s/^# \?//p' "$0"
+}
+
+case "${1:-launch}" in
+    launch)
+        if ! command -v ncmpcpp >/dev/null 2>&1; then
+            echo "Error: ncmpcpp not found. Install: sudo pacman -S ncmpcpp" >&2
+            exit 1
+        fi
+        ensure_mpd_running
+        exec ncmpcpp
+        ;;
+    play|toggle)    mpc_cmd toggle ;;
+    next)           mpc_cmd next ;;
+    prev)           mpc_cmd prev ;;
+    stop)           mpc_cmd stop ;;
+    status)         mpc_cmd status ;;
+    setup)          do_setup ;;
+    -h|--help|help) show_help ;;
+    *)
+        echo "Unknown command: $1" >&2
+        show_help >&2
+        exit 1
+        ;;
+esac

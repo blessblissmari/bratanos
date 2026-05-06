@@ -21,6 +21,12 @@ to teach yourself `dd` to install it.
 | `src/bratan-tidy/` | Cleanup CLI: orphans, cache, kernels, journal, `.pacnew`/`.pacsave`, broken symlinks. |
 | `src/bratan-pacman/` | `pacman` wrapper that transparently falls back to AUR via `paru` for missing packages. |
 | `src/bratan-grub/` | GRUB theme installer (`bratanos-grub-install`). |
+| `src/bratan-recorder/` | One-click screen + mic recorder (Print key). Wraps `wf-recorder` / `ffmpeg`. |
+| `src/bratan-photos/` | Image viewer (`imv`) + light editor (rotate/crop/resize via ImageMagick). |
+| `src/bratan-music/` | MPD + ncmpcpp with a Catppuccin config and i3 media-key bindings. |
+| `src/bratan-mail/` | Thunderbird with a BratanOS profile (dark, GPG-ready, no telemetry). |
+| `src/bratan-browser/` | Firefox / LibreWolf with system-wide privacy `policies.json` + uBO preinstalled. |
+| `src/bratan-office/` | LibreOffice with Catppuccin theme + BratanOS template + one-shot PDF export. |
 | `installer/` | Tauri (Rust + web) desktop flasher app. balenaEtcher-style. |
 | `web/` | Static landing/download site. |
 | `Dockerfile` | Reproducible ISO builder for non-Arch hosts. |
@@ -99,6 +105,23 @@ sudo pacman -S obscure-aur-thing   # paru builds it from AUR — automatic
 [Chaotic-AUR] is enabled out of the box on first boot via the
 `bratanos-firstboot.service` unit, so most popular AUR packages
 arrive as prebuilt binaries (no compilation).
+
+## The bratan-* app suite
+
+All six apps below are installed by default in the live ISO and registered as
+`.desktop` entries (so they appear in rofi and any other launcher):
+
+| Command | Default keybind | What it does |
+|---------|-----------------|--------------|
+| `bratan-recorder` | `Print` | Toggle screen + mic recording. Output in `~/Videos/bratan-recorder/`. |
+| `bratan-photos FILE` | (file manager) | View an image. Subcommands: `edit`, `crop`, `rotate`, `resize`. |
+| `bratan-music` | `Mod+Shift+M` | Launch ncmpcpp (auto-starts MPD on first run). `play`/`next`/`prev`/`stop` subcommands. |
+| `bratan-mail` | (rofi) | Thunderbird with the `bratan` profile pre-configured. |
+| `bratan-browser [URL]` | `Mod+Shift+B` | Firefox / LibreWolf with the BratanOS `policies.json` applied system-wide. |
+| `bratan-office [FILE]` | (rofi) | LibreOffice. `bratan-office pdf FILE` does a headless PDF export. |
+
+Each one is a single self-contained shell script in `src/bratan-*/` and can
+be inspected, edited or removed without touching anything else.
 
 ## GRUB theme + ly greeter
 

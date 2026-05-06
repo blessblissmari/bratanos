@@ -85,6 +85,22 @@ bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'log out?' -B 'yes' 'i3-msg e
 # tidy shortcut — quick status check
 bindsym $mod+Shift+t exec --no-startup-id alacritty -e bratan-tidy --status
 
+# bratan-* app shortcuts (Mod+Shift+R is taken by 'restart i3' above)
+bindsym Print              exec --no-startup-id bratan-recorder
+bindsym $mod+Print         exec --no-startup-id bratan-recorder
+bindsym $mod+Shift+m       exec --no-startup-id alacritty -e bratan-music
+bindsym $mod+Shift+b       exec --no-startup-id bratan-browser
+bindsym $mod+Shift+n       exec --no-startup-id thunar
+
+# media keys (works when wf-recorder is recording too)
+bindsym XF86AudioPlay exec --no-startup-id bratan-music play
+bindsym XF86AudioNext exec --no-startup-id bratan-music next
+bindsym XF86AudioPrev exec --no-startup-id bratan-music prev
+bindsym XF86AudioStop exec --no-startup-id bratan-music stop
+bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -5%
+bindsym XF86AudioMute        exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle
+
 # colors — BratanOS palette
 set $bg     #1e1e2e
 set $fg     #cdd6f4

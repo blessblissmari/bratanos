@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+# bratan-mail — Thunderbird with BratanOS defaults.
+#
+# Usage:
+#   bratan-mail               launch Thunderbird with bratan profile
+#   bratan-mail setup         create bratan profile with sane defaults
+#   bratan-mail --help        this help
+#
+# On first run, 'setup' is called automatically.
+# Profile stored in ~/.thunderbird/bratan.default/
+
+set -euo pipefail
+
+PROFILE_DIR="${HOME}/.thunderbird/bratan.default"
+PROFILES_INI="${HOME}/.thunderbird/profiles.ini"
+
+do_setup() {
+    mkdir -p "$PROFILE_DIR/chrome"
+
+    # user.js — sane Thunderbird defaults
+    cat > "${PROFILE_DIR}/user.js" << 'USERJS'
+// BratanOS mail defaults — dark, private, ready.
+
+// Dark theme
+user_pref("extensions.activeThemeID", "default-theme@mozilla.org");
+user_pref("browser.theme.dark-toolbar-theme", true);
+user_pref("ui.systemUsesDarkTheme", 1);
+user_pref("layout.css.prefers-color-scheme.content-override", 0);
+
+// Privacy
+user_pref("mailnews.message_display.disable_remote_image", true);
+user_pref("mail.phishing.detection.enabled", true);
+user_pref("mail.spam.logging.enabled", true);
+user_pref("mail.spam.manualMark", true);
+user_pref("network.cookie.cookieBehavior", 1);
+user_pref("privacy.donottrackheader.enabled", true);
+user_pref("mail.collect_email_address_outgoing", false);
+
+// Compose
+user_pref("mail.identity.default.compose_html", false);
+user_pref("mail.SpellCheckBeforeSend", true);
+user_pref("mail.warn_on_send_accel_key", true);
+user_pref("msgcompose.default_colors", false);
+
+// GPG / OpenPGP
+user_pref("mail.openpgp.allow_external_gnupg", true);
+
+// General UX
+user_pref("mail.tabs.drawInTitlebar", true);
+user_pref("mail.tabs.autoHide", false);
+user_pref("mail.biff.play_sound", false);
+user_pref("mail.startup.enabledMailCheckOnce", true);
+user_pref("mailnews.start_page.enabled", false);
+user_pref("mail.shell.checkDefaultClient", false);
+
+// Disable telemetry
+user_pref("datareporting.policy.dataSubmissionEnabled", false);
+user_pref("toolkit.telemetry.enabled", false);
+user_pref("toolkit.telemetry.unified", false);
+USERJS
+
+    # userChrome.css — catppuccin-ish look
+    cat > "${PROFILE_DIR}/chrome/userChrome.css" << 'CHROMECSS'
+/* BratanOS mail — catppuccin dark overrides */
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+:root {
+    --lwt-accent-color: #1e1e2e !important;
+    --lwt-text-color: #cdd6f4 !important;
+    --toolbar-bgcolor: #181825 !important;
+    --toolbar-color: #cdd6f4 !important;
+    --lwt-toolbar-field-background-color: #313244 !important;
+    --lwt-toolbar-field-color: #cdd6f4 !important;
+    --lwt-toolbar-field-border-color: #45475a !important;
+    --tab-line-color: #89b4fa !important;
+}
+
+#messengerWindow {
+    background-color: #1e1e2e !important;
+}
+
+.tabmail-tab[selected] {
+    border-bottom: 2px solid #89b4fa !important;
+}
+CHROMECSS
+
+    echo "Created bratan-mail profile at: $PROFILE_DIR"
+}
+
+ensure_profile() {
+    if [[ ! -d "$PROFILE_DIR" ]]; then
+        do_setup
+    fi
+
+    # Register profile in profiles.ini if not present
+    if [[ ! -f "$PROFILES_INI" ]] || ! grep -q "bratan.default" "$PROFILES_INI" 2>/dev/null; then
+        mkdir -p "$(dirname "$PROFILES_INI")"
+        local idx=0
+        if [[ -f "$PROFILES_INI" ]]; then
+            idx=$(grep -c '^\[Profile' "$PROFILES_INI" 2>/dev/null || echo 0)
+        fi
+        cat >> "$PROFILES_INI" << EOF
+
+[Profile${idx}]
+Name=bratan
+IsRelative=1
+Path=bratan.default
+Default=1
+EOF
+        echo "Registered bratan profile in profiles.ini"
+    fi
+}
+
+show_help() {
+    sed -n '2,/^$/s/^# \?//p' "$0"
+}
+
+case "${1:-launch}" in
+    launch)
+        if ! command -v thunderbird >/dev/null 2>&1; then
+            echo "Error: thunderbird not found. Install: sudo pacman -S thunderbird" >&2
+            exit 1
+        fi
+        ensure_profile
+        exec thunderbird -P bratan "$@"
+        ;;
+    setup)
+        do_setup
+        ;;
+    -h|--help|help)
+        show_help
+        ;;
+    *)
+        echo "Unknown command: $1" >&2
+        show_help >&2
+        exit 1
+        ;;
+esac

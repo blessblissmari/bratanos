@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=BratanOS Photos
+GenericName=Image Viewer
+Comment=View and lightly edit images
+Exec=bratan-photos %F
+Icon=image-x-generic
+Terminal=false
+MimeType=image/jpeg;image/png;image/gif;image/bmp;image/webp;image/tiff;image/x-portable-bitmap;
+Categories=Graphics;Viewer;Photography;X-BratanOS;
+Keywords=image;photo;viewer;crop;rotate;

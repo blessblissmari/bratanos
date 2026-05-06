@@ -203,26 +203,54 @@ sudo bratan-flasher</code></pre>
       </header>
       <p>USB-флешер в стиле balenaEtcher на Tauri (Rust + web). Уже в репо в <code>installer/</code> — Linux-бэкенд полностью рабочий.</p>
     </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-recorder</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.2</span>
+      </header>
+      <p>Запись экрана и микрофона в один клик, на клавише <kbd>Print</kbd>. Обёртка над <code>wf-recorder</code> (Wayland) и <code>ffmpeg</code> (X11). Складывает в <code>~/Videos/bratan-recorder/</code>.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-photos</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.2</span>
+      </header>
+      <p>Быстрый просмотрщик (<code>imv</code>) + лёгкий редактор: поворот, отражение, интерактивный кроп (через <code>slop</code>), ресайз, конвертация форматов — всё через ImageMagick.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-music</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.2</span>
+      </header>
+      <p>MPD + ncmpcpp с Catppuccin-конфигом и биндами i3 под медиа-клавиши. <code>bratan-music setup</code> генерит рабочий конфиг в один проход.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-mail</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.2</span>
+      </header>
+      <p>Thunderbird с профилем BratanOS: тёмная тема, удалённые картинки блокируются, телеметрия отключена, GPG готов, Catppuccin <code>userChrome.css</code>.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-browser</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.2</span>
+      </header>
+      <p>Обёртка над Firefox / LibreWolf с системным <code>policies.json</code>: телеметрия выкл., uBlock Origin предустановлен, DuckDuckGo по умолчанию, Catppuccin chrome.</p>
+    </article>
+    <article class="rmcard rmcard--shipped">
+      <header>
+        <span class="rmcard__name">bratan-office</span>
+        <span class="rmcard__status rmcard__status--shipped">готово · v0.2</span>
+      </header>
+      <p>LibreOffice с Catppuccin-овым <code>registrymodifications.xcu</code>, шаблоном BratanOS и экспортом в PDF одной командой <code>bratan-office pdf FILE</code>.</p>
+    </article>
     <article class="rmcard">
       <header>
         <span class="rmcard__name">bratan-store</span>
         <span class="rmcard__status">планируется</span>
       </header>
       <p>Графический фронт для <code>pacman</code> + Chaotic-AUR + AUR. Поиск, установка, обновления, чистка — всё кликабельно. Для тех, кто хочет мощь Arch с GUI.</p>
-    </article>
-    <article class="rmcard">
-      <header>
-        <span class="rmcard__name">bratan-browser</span>
-        <span class="rmcard__status">планируется</span>
-      </header>
-      <p>Базируется на LibreWolf, тема Catppuccin, приватные настройки по умолчанию, BratanOS-страница новой вкладки, разумный набор расширений (uBO, KeePassXC и т.д.).</p>
-    </article>
-    <article class="rmcard">
-      <header>
-        <span class="rmcard__name">bratan-office</span>
-        <span class="rmcard__status">планируется</span>
-      </header>
-      <p>LibreOffice с шаблонами BratanOS, плотной интеграцией с Thunar/i3 и шорткатами для PDF-экспорта в один клик. Продуктивность без enterprise-балласта.</p>
     </article>
     <article class="rmcard">
       <header>
@@ -233,38 +261,10 @@ sudo bratan-flasher</code></pre>
     </article>
     <article class="rmcard">
       <header>
-        <span class="rmcard__name">bratan-mail</span>
-        <span class="rmcard__status">планируется</span>
-      </header>
-      <p>Thunderbird с темой BratanOS, dark mode по умолчанию, автодискавер IMAP/SMTP, GPG из коробки.</p>
-    </article>
-    <article class="rmcard">
-      <header>
-        <span class="rmcard__name">bratan-music</span>
-        <span class="rmcard__status">планируется</span>
-      </header>
-      <p>Минималистичный плеер на MPD в Tauri-обёртке, с биндами под i3 и аккуратным просмотром обложек/волновой формы.</p>
-    </article>
-    <article class="rmcard">
-      <header>
-        <span class="rmcard__name">bratan-photos</span>
-        <span class="rmcard__status">планируется</span>
-      </header>
-      <p>Быстрый просмотрщик + лёгкий редактор (кроп / поворот / экспорт). Читает RAW. Без подписок. Без облака, пока ты сам его не настроишь.</p>
-    </article>
-    <article class="rmcard">
-      <header>
         <span class="rmcard__name">bratan-cloud</span>
         <span class="rmcard__status">планируется</span>
       </header>
       <p>Опциональная синхронизация dotfiles и состояния. Идёт с рецептом self-hosted-бэкенда; либо просто укажи свой git remote.</p>
-    </article>
-    <article class="rmcard">
-      <header>
-        <span class="rmcard__name">bratan-recorder</span>
-        <span class="rmcard__status">планируется</span>
-      </header>
-      <p>Запись экрана и микрофона в один клик. Обёртка над <code>wf-recorder</code>/<code>obs-cli</code>, складывает в <code>~/Videos/bratan-recorder/</code>.</p>
     </article>
   </div>
   <p class="muted" style="margin-top: 18px;">
@@ -288,8 +288,8 @@ sudo bratan-flasher</code></pre>
     <p>Да. Клонируй репо и сделай <code>sudo make install-tidy</code> — он просто положит скрипт + systemd-юнит + pacman-хук на место.</p>
   </details>
   <details>
-    <summary>Когда выйдут <code>bratan-browser</code> / <code>bratan-office</code>?</summary>
-    <p>Жёсткого ETA нет. Roadmap выше — оптимистичный список; лучше выпустить одно хорошо, чем десять наполовину. Flasher уже в v0.1; следующие в очереди — <code>bratan-store</code> и <code>bratan-installer</code>.</p>
+    <summary>Что в v0.2 по сравнению с v0.1?</summary>
+    <p>v0.1 это сам дистрибутив + <code>bratan-flasher</code>. v0.2 добавляет шесть первопартийных приложений: <code>bratan-recorder</code>, <code>bratan-photos</code>, <code>bratan-music</code>, <code>bratan-mail</code>, <code>bratan-browser</code> и <code>bratan-office</code> — все уже в live-ISO по умолчанию. В roadmap остаётся: <code>bratan-store</code>, <code>bratan-installer</code> и <code>bratan-cloud</code>.</p>
   </details>
 </section>
 

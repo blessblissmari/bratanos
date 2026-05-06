@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=BratanOS Mail
+GenericName=Mail Client
+Comment=Thunderbird with BratanOS defaults
+Exec=bratan-mail %u
+Icon=mail-message-new
+Terminal=false
+MimeType=x-scheme-handler/mailto;application/x-xpinstall;message/rfc822;
+Categories=Network;Email;X-BratanOS;
+Keywords=email;mail;thunderbird;

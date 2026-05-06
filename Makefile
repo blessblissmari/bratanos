@@ -33,6 +33,40 @@ stage:
 	                                                   $(AIROOT)/etc/profile.d/00-bratanos-pacman-path.sh
 	install -Dm0755 src/bratan-grub/bratanos-grub-install \
 	                                                   $(AIROOT)/usr/bin/bratanos-grub-install
+	# bratan-recorder
+	install -Dm0755 src/bratan-recorder/bratan-recorder \
+	                                                   $(AIROOT)/usr/bin/bratan-recorder
+	install -Dm0644 src/bratan-recorder/bratan-recorder.desktop \
+	                                                   $(AIROOT)/usr/share/applications/bratan-recorder.desktop
+	# bratan-photos
+	install -Dm0755 src/bratan-photos/bratan-photos \
+	                                                   $(AIROOT)/usr/bin/bratan-photos
+	install -Dm0644 src/bratan-photos/bratan-photos.desktop \
+	                                                   $(AIROOT)/usr/share/applications/bratan-photos.desktop
+	# bratan-music
+	install -Dm0755 src/bratan-music/bratan-music \
+	                                                   $(AIROOT)/usr/bin/bratan-music
+	install -Dm0644 src/bratan-music/bratan-music.desktop \
+	                                                   $(AIROOT)/usr/share/applications/bratan-music.desktop
+	# bratan-mail
+	install -Dm0755 src/bratan-mail/bratan-mail \
+	                                                   $(AIROOT)/usr/bin/bratan-mail
+	install -Dm0644 src/bratan-mail/bratan-mail.desktop \
+	                                                   $(AIROOT)/usr/share/applications/bratan-mail.desktop
+	# bratan-browser
+	install -Dm0755 src/bratan-browser/bratan-browser \
+	                                                   $(AIROOT)/usr/bin/bratan-browser
+	install -Dm0644 src/bratan-browser/bratan-browser.desktop \
+	                                                   $(AIROOT)/usr/share/applications/bratan-browser.desktop
+	install -Dm0644 src/bratan-browser/policies.json \
+	                                                   $(AIROOT)/etc/bratan-browser/policies.json
+	install -Dm0644 src/bratan-browser/policies.json \
+	                                                   $(AIROOT)/usr/lib/firefox/distribution/policies.json
+	# bratan-office
+	install -Dm0755 src/bratan-office/bratan-office \
+	                                                   $(AIROOT)/usr/bin/bratan-office
+	install -Dm0644 src/bratan-office/bratan-office.desktop \
+	                                                   $(AIROOT)/usr/share/applications/bratan-office.desktop
 	@echo "[stage] sources copied into airootfs"
 
 iso: stage
@@ -60,5 +94,10 @@ clean:
 	rm -rf $(OUT) $(WORK)
 
 lint:
-	@find src -type f -name '*.sh' -o -name 'pacman' -o -name 'bratan-tidy' -o -name 'bratanos-grub-install' \
-	  | xargs -I{} bash -n "{}" && echo "[lint] all bash scripts parse cleanly"
+	@scripts=$$( \
+	    find src -type f \
+	      \( -name '*.sh' -o -name 'pacman' -o -name 'bratan-*' -o -name 'bratanos-*' \) \
+	      ! -name '*.desktop' ! -name '*.conf' ! -name '*.json' ! -name '*.1' \
+	  ); \
+	  for s in $$scripts; do bash -n "$$s" || exit 1; done; \
+	  echo "[lint] all bash scripts parse cleanly"
