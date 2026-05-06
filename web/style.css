@@ -66,6 +66,25 @@ nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 20px; }
 nav ul a { color: var(--muted); }
 nav ul a:hover { color: var(--text); }
 
+/* lang switcher */
+.lang {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 12px; font-weight: 700;
+  color: var(--muted);
+}
+.lang a { color: var(--muted); }
+.lang a:hover { color: var(--text); }
+.lang__active { color: var(--accent); }
+.lang__sep { color: var(--dim); }
+
+@media (max-width: 720px) {
+  nav { gap: 12px; flex-wrap: wrap; }
+  nav ul { gap: 14px; font-size: 13px; }
+}
+
 /* hero */
 .hero {
   max-width: 980px; margin: 0 auto;
@@ -197,6 +216,82 @@ nav ul a:hover { color: var(--text); }
 }
 .card h3 { margin: 0 0 6px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
 .card p  { margin: 0; }
+
+/* benefits grid (Why BratanOS) */
+.benefits {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-top: 18px;
+}
+.benefit {
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 6px;
+  transition: border-color .15s ease, transform .08s ease;
+}
+.benefit:hover { border-color: var(--accent); transform: translateY(-1px); }
+.benefit__icon {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(137,180,250,0.18), rgba(180,190,254,0.10));
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+.benefit h3 {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+}
+.benefit p { margin: 0; color: var(--muted); font-size: 14px; }
+.benefit code { font-size: 12.5px; }
+
+/* roadmap */
+.roadmap {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin-top: 18px;
+}
+.rmcard {
+  padding: 18px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 8px;
+  transition: border-color .15s ease, transform .08s ease;
+}
+.rmcard:hover { border-color: var(--accent); transform: translateY(-1px); }
+.rmcard header {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+}
+.rmcard__name {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+}
+.rmcard__status {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(249,226,175,0.10);
+  color: var(--warn);
+  border: 1px solid rgba(249,226,175,0.20);
+  white-space: nowrap;
+}
+.rmcard__status--shipped {
+  background: rgba(166,227,161,0.12);
+  color: var(--good);
+  border-color: rgba(166,227,161,0.25);
+}
+.rmcard--shipped { border-color: rgba(166,227,161,0.35); }
+.rmcard p { margin: 0; color: var(--muted); font-size: 14px; }
 
 /* faq */
 details {
