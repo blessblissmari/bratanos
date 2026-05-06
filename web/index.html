@@ -78,12 +78,14 @@ Run <span class="t-accent">sudo bratan-tidy --apply</span> to clean.</pre>
     <button class="tab" data-tab="linux">Linux</button>
     <button class="tab" data-tab="mac">macOS</button>
     <button class="tab" data-tab="windows">Windows</button>
+    <button class="tab" data-tab="persistent">Persistent USB</button>
     <button class="tab" data-tab="flasher">BratanOS Flasher</button>
   </div>
   <div class="tab-panel" data-panel="linux">
     <p>Find the USB device with <code>lsblk</code>. Replace <code>sdX</code> below — <strong>NOT a partition</strong>.</p>
     <pre><code>sudo dd if=bratanos.iso of=/dev/sdX bs=4M status=progress conv=fsync
 sudo sync</code></pre>
+    <p class="muted">This produces a <em>plain live USB</em>. Every reboot resets to factory. Want changes to stick? See the <strong>Persistent USB</strong> tab.</p>
   </div>
   <div class="tab-panel hidden" data-panel="mac">
     <p>Find the disk with <code>diskutil list</code>, unmount it, then <code>dd</code>:</p>
@@ -100,6 +102,17 @@ sync</code></pre>
       <li><a href="https://www.ventoy.net/">Ventoy</a> — drop the ISO onto a Ventoy stick.</li>
       <li><a href="https://etcher.balena.io/">balenaEtcher</a> — point, click, flash.</li>
     </ul>
+  </div>
+  <div class="tab-panel hidden" data-panel="persistent">
+    <p>Make BratanOS actually <em>live</em> on the USB stick — installed packages, <code>~/.config</code> tweaks and files in <code>$HOME</code> all survive reboots.</p>
+    <pre><code>sudo bratan-flash-persistent bratanos.iso /dev/sdX</code></pre>
+    <p>What it does, in three steps:</p>
+    <ol>
+      <li><code>dd</code>s the ISO onto the stick.</li>
+      <li>Carves the leftover space into a second ext4 partition labeled <code>BRATAN_PERSIST</code>.</li>
+      <li>On next boot, pick <strong>"BratanOS (persistent)"</strong> in the bootloader menu — the kernel mounts that partition as the writable overlay.</li>
+    </ol>
+    <p class="muted">The script ships <em>inside</em> the live ISO too, so once you've booted a plain live stick, you can use it to flash another one.</p>
   </div>
   <div class="tab-panel hidden" data-panel="flasher">
     <p>The BratanOS Flasher is our own balenaEtcher-style app: pick an ISO, pick a USB, watch a progress bar. Built with Tauri (Rust + web).</p>

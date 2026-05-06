@@ -78,12 +78,14 @@
     <button class="tab" data-tab="linux">Linux</button>
     <button class="tab" data-tab="mac">macOS</button>
     <button class="tab" data-tab="windows">Windows</button>
+    <button class="tab" data-tab="persistent">Флешка с памятью</button>
     <button class="tab" data-tab="flasher">BratanOS Flasher</button>
   </div>
   <div class="tab-panel" data-panel="linux">
     <p>Найди USB-устройство через <code>lsblk</code>. Подставь <code>sdX</code> ниже — <strong>не партицию, а весь диск</strong>.</p>
     <pre><code>sudo dd if=bratanos.iso of=/dev/sdX bs=4M status=progress conv=fsync
 sudo sync</code></pre>
+    <p class="muted">Это <em>обычная</em> live-флешка. Каждый ребут возвращает её в исходное состояние. Если хочешь, чтобы изменения сохранялись — открой вкладку <strong>«Флешка с памятью»</strong>.</p>
   </div>
   <div class="tab-panel hidden" data-panel="mac">
     <p>Найди диск через <code>diskutil list</code>, размонтируй и пиши <code>dd</code>:</p>
@@ -100,6 +102,17 @@ sync</code></pre>
       <li><a href="https://www.ventoy.net/">Ventoy</a> — кинуть ISO на флешку с Ventoy.</li>
       <li><a href="https://etcher.balena.io/">balenaEtcher</a> — выбрать, нажать, готово.</li>
     </ul>
+  </div>
+  <div class="tab-panel hidden" data-panel="persistent">
+    <p>Сделать так, чтобы BratanOS реально <em>жил</em> на флешке: установленные пакеты, <code>~/.config</code>, файлы в <code>$HOME</code> — всё переживает ребут.</p>
+    <pre><code>sudo bratan-flash-persistent bratanos.iso /dev/sdX</code></pre>
+    <p>Что делает скрипт:</p>
+    <ol>
+      <li><code>dd</code>-ит ISO на флешку.</li>
+      <li>Из оставшегося свободного места делает второй раздел в ext4 с меткой <code>BRATAN_PERSIST</code>.</li>
+      <li>При следующей загрузке выбираешь <strong>«BratanOS (persistent)»</strong> в меню загрузчика — ядро монтирует этот раздел как writable overlay.</li>
+    </ol>
+    <p class="muted">Скрипт лежит и <em>внутри</em> live-ISO, поэтому, загрузившись с обычной live-флешки, ты можешь сразу записать вторую — уже с памятью.</p>
   </div>
   <div class="tab-panel hidden" data-panel="flasher">
     <p>BratanOS Flasher — наш собственный аналог balenaEtcher: выбери ISO, выбери флешку, смотри прогресс. Написан на Tauri (Rust + web).</p>

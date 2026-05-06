@@ -38,7 +38,7 @@ to teach yourself `dd` to install it.
 # build the ISO (needs Arch host, or use Docker — see below)
 make iso
 
-# write the ISO to a USB stick (Linux):
+# plain live USB (no persistence — every boot resets to factory):
 sudo dd if=out/bratanos-*.iso of=/dev/sdX bs=4M status=progress conv=fsync
 sudo sync
 ```
@@ -57,6 +57,30 @@ make qemu
 
 On macOS/Windows, the same ISO works with [balenaEtcher],
 [Rufus] (DD mode) or [Ventoy].
+
+### Persistent live USB
+
+Want BratanOS to actually **live** on your flash drive — installed
+packages, `~/.config` tweaks, files in `$HOME` all surviving reboots?
+Use the bundled flasher:
+
+```sh
+sudo bratan-flash-persistent out/bratanos-*.iso /dev/sdX
+```
+
+This:
+
+1. `dd`s the ISO to `/dev/sdX` (overwrites everything on the stick),
+2. carves the leftover space into a second partition labeled
+   `BRATAN_PERSIST` and formats it ext4,
+3. on next boot, pick **"BratanOS (persistent)"** in the GRUB or
+   SYSLINUX menu — the kernel command line is set to
+   `cow_label=BRATAN_PERSIST cow_persistent=P`, which mounts that
+   partition as the writable overlay.
+
+`bratan-flash-persistent` itself ships inside the live ISO (so you can
+re-flash a fresh stick from a working BratanOS), and is also runnable
+from a clone of this repo at `src/bratan-flash-persistent/`.
 
 ## The tidy system, end-to-end
 
