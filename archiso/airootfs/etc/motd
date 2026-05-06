@@ -1,0 +1,7 @@
+
+BratanOS — Arch + i3, no trash.
+  • status:    bratan-tidy --status
+  • clean:     sudo bratan-tidy --apply
+  • aur:       sudo pacman -S <aur-pkg>          (auto-falls-back via paru)
+  • prebuilt:  sudo pacman -S brave-bin          (Chaotic-AUR enabled)
+

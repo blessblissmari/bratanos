@@ -1,0 +1,18 @@
+#
+# /etc/pacman.d/hooks/90-bratan-pacfile-warn.hook
+#
+# Print a one-liner after upgrades so users notice .pacnew files instead
+# of silently piling them up forever.
+#
+
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = *
+
+[Action]
+Description = BratanOS: warn about pending .pacnew/.pacsave files
+When = PostTransaction
+Exec = /usr/bin/sh -c 'n=$(find /etc \( -name "*.pacnew" -o -name "*.pacsave" \) 2>/dev/null | wc -l); [ "$n" -gt 0 ] && printf "\033[33m[bratanos]\033[0m %s pacnew/pacsave file(s) waiting — review with: sudo pacdiff\n" "$n" || true'
+AbortOnFail = false

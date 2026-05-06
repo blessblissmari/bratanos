@@ -1,0 +1,22 @@
+# build artifacts
+out/
+work/
+target/
+node_modules/
+
+# editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# generated
+installer/src-tauri/Cargo.lock.bak
+installer/src-tauri/gen/
+*.iso
+*.img
+*.zst.tmp

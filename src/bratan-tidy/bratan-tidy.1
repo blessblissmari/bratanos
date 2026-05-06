@@ -1,0 +1,48 @@
+.TH BRATAN-TIDY 1 "2026" "BratanOS" "BratanOS Manual"
+.SH NAME
+bratan-tidy \- keep BratanOS clean
+.SH SYNOPSIS
+.B bratan-tidy
+.RI [ OPTIONS ]
+.RI [ TASK ...]
+.br
+.B bratan-tidy
+.B --status
+.SH DESCRIPTION
+Reclaims disk space and removes leftover trash from common Arch sources:
+orphan packages, pacman cache, old kernel modules, .pacnew/.pacsave files,
+orphan user-config directories, journald logs and broken symlinks.
+.PP
+Runs as a dry-run by default. Pass
+.B --apply
+to actually delete things.
+.SH OPTIONS
+.TP
+.B --apply
+Actually remove things.
+.TP
+.B --auto
+Non-interactive mode used by systemd timers and pacman hooks.
+.TP
+.B --status
+Print a summary of reclaimable space and exit.
+.TP
+.BI --keep-cache= N
+Pacman cache versions to keep (default 2).
+.TP
+.BI --keep-kernels= N
+Old kernel sets to keep (default 2).
+.TP
+.BI --journal-days= N
+Vacuum journal entries older than N days (default 14).
+.SH TASKS
+orphans, cache, kernels, pacfiles, userconfigs, journal, symlinks.
+.SH FILES
+/etc/bratanos/tidy.conf
+.br
+/usr/lib/systemd/system/bratan-tidy.timer
+.SH SEE ALSO
+.BR pacman (8),
+.BR paccache (8),
+.BR pacdiff (8),
+.BR journalctl (1).

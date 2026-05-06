@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+# bratan-pacman — drop-in pacman wrapper for BratanOS.
+#
+# Goals:
+#   1. Behave EXACTLY like real pacman for everything that already works.
+#   2. For `-S <pkg>`: if pacman can't find <pkg> in any sync repo, transparently
+#      install it from the AUR via paru (build), so newbies never need to learn
+#      a separate AUR helper.
+#   3. After any -R (remove) operation, kick off `bratan-tidy --auto` so
+#      orphans don't pile up.
+#
+# Installed at /usr/local/bin/pacman (earlier in PATH than /usr/bin/pacman).
+# Real pacman is always invoked via REAL_PACMAN to avoid recursion.
+
+set -uo pipefail
+
+REAL_PACMAN="/usr/bin/pacman"
+HELPER="${BRATAN_AUR_HELPER:-paru}"
+TIDY="/usr/bin/bratan-tidy"
+
+# Hard fail-safes: if real pacman is missing, do nothing clever.
+if [[ ! -x "$REAL_PACMAN" ]]; then
+    echo "bratan-pacman: real pacman not found at $REAL_PACMAN" >&2
+    exit 127
+fi
+
+# If invoked recursively (e.g. by paru), short-circuit to real pacman.
+if [[ "${BRATAN_PACMAN_REENTRANT:-0}" == "1" ]]; then
+    exec "$REAL_PACMAN" "$@"
+fi
+export BRATAN_PACMAN_REENTRANT=1
+
+# Detect mode flags. We only special-case -S (sync install) and -R (remove).
+# Everything else is delegated unchanged.
+mode=""
+remove_mode=0
+help_mode=0
+has_pkg_arg=0
+for a in "$@"; do
+    case "$a" in
+        -S|-Sy|-Syu|-Syyu|-Su|-Syy|--sync) mode="sync" ;;
+        -Ss|-Si|-Sl|-Sg|-Sc|-Scc|-Sw)      mode="sync_meta" ;;
+        -R|-Rs|-Rns|-Rn|-Rdd|--remove)     remove_mode=1 ;;
+        -h|--help|-V|--version)            help_mode=1 ;;
+        -*) ;;
+        *)  has_pkg_arg=1 ;;
+    esac
+done
+
+run_tidy_after_remove() {
+    [[ -x "$TIDY" ]] || return 0
+    # Only sensible after a successful removal of real packages.
+    "$TIDY" --auto orphans cache 2>/dev/null || true
+}
+
+# Help/version: pass through, then append a BratanOS hint on --help.
+if (( help_mode )); then
+    "$REAL_PACMAN" "$@"
+    rc=$?
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        cat <<EOF
+
+BratanOS extras:
+  This pacman is a wrapper. -S falls back to AUR (via $HELPER) for packages
+  not in the official repos. After -R it triggers \`bratan-tidy --auto\`.
+  Disable wrapper logic for one call:  BRATAN_PACMAN_REENTRANT=1 pacman ...
+EOF
+    fi
+    exit $rc
+fi
+
+# Pure delegation for non-install / non-remove modes.
+if [[ "$mode" != "sync" ]] && (( remove_mode == 0 )); then
+    exec "$REAL_PACMAN" "$@"
+fi
+
+# -R / --remove: delegate, then tidy on success.
+if (( remove_mode )); then
+    "$REAL_PACMAN" "$@"
+    rc=$?
+    (( rc == 0 )) && run_tidy_after_remove
+    exit $rc
+fi
+
+# -S without explicit package targets (e.g. `pacman -Syu`): straight delegate.
+if [[ "$mode" == "sync" ]] && (( has_pkg_arg == 0 )); then
+    exec "$REAL_PACMAN" "$@"
+fi
+
+# -S with package targets: try real pacman first (binary repos, including
+# Chaotic-AUR). If — and only if — it fails because some package was not
+# found in any sync repo, hand the missing names to the AUR helper.
+
+# Capture stderr so we can detect "target not found".
+tmp_err="$(mktemp)"
+trap 'rm -f "$tmp_err"' EXIT
+"$REAL_PACMAN" "$@" 2> >(tee "$tmp_err" >&2)
+rc=$?
+
+if (( rc == 0 )); then
+    exit 0
+fi
+
+# Extract missing target names from pacman's stderr.
+missing=()
+while IFS= read -r line; do
+    if [[ "$line" =~ target\ not\ found:\ ([^[:space:]]+) ]]; then
+        missing+=("${BASH_REMATCH[1]}")
+    fi
+done < "$tmp_err"
+
+# If the failure wasn't "target not found", surface the original exit code.
+if (( ${#missing[@]} == 0 )); then
+    exit "$rc"
+fi
+
+if ! command -v "$HELPER" >/dev/null 2>&1; then
+    cat <<EOF >&2
+
+bratan-pacman: ${#missing[@]} package(s) not in sync repos: ${missing[*]}
+The AUR helper '$HELPER' is not installed, so we can't fall back to AUR.
+Install it with:  sudo pacman -S $HELPER
+
+EOF
+    exit "$rc"
+fi
+
+echo >&2
+echo "bratan-pacman: ${#missing[@]} package(s) not in sync repos — falling back to AUR via $HELPER:" >&2
+printf '  - %s\n' "${missing[@]}" >&2
+echo >&2
+
+# paru/yay must NOT loop back through this wrapper.
+# BRATAN_PACMAN_REENTRANT=1 is already exported, so any pacman call from
+# the helper goes straight to /usr/bin/pacman. We also point the helper at
+# real pacman explicitly via --pacman.
+"$HELPER" -S --needed --pacman "$REAL_PACMAN" "${missing[@]}"
+exit $?
