@@ -1,5 +1,0 @@
-## Allow members of group wheel to use sudo on BratanOS.
-%wheel ALL=(ALL:ALL) ALL
-
-## Live-CD convenience: `liveuser` is passwordless; remove on installed system.
-liveuser ALL=(ALL) NOPASSWD: ALL
