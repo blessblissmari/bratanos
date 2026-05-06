@@ -11,6 +11,7 @@ archiso/airootfs/etc/bratanos/tidy.conf
 archiso/airootfs/etc/paru.conf
 archiso/airootfs/etc/profile.d/00-bratanos-pacman-path.sh
 archiso/airootfs/usr/bin/bratan-browser
+archiso/airootfs/usr/bin/bratan-flash-persistent
 archiso/airootfs/usr/bin/bratan-mail
 archiso/airootfs/usr/bin/bratan-music
 archiso/airootfs/usr/bin/bratan-office

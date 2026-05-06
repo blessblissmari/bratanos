@@ -67,6 +67,9 @@ stage:
 	                                                   $(AIROOT)/usr/bin/bratan-office
 	install -Dm0644 src/bratan-office/bratan-office.desktop \
 	                                                   $(AIROOT)/usr/share/applications/bratan-office.desktop
+	# bratan-flash-persistent (carve a persistence partition next to the ISO)
+	install -Dm0755 src/bratan-flash-persistent/bratan-flash-persistent \
+	                                                   $(AIROOT)/usr/bin/bratan-flash-persistent
 	@echo "[stage] sources copied into airootfs"
 
 iso: stage
